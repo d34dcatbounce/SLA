@@ -16,7 +16,7 @@
         <nav class="gnb">
             <ul>
                 <li><a onclick="navigateTo('view-worldview', 'theme-charcoal')">Worldview</a></li>
-                <li><a onclick="navigateTo('view-artwork', 'theme-charcoal')">Assimilation</a></li>
+                <li><a onclick="navigateTo('view-artwork', 'theme-charcoal')">Restore Data</a></li>
                 <li><a onclick="navigateTo('view-photograph', 'theme-charcoal')">Photograph</a></li>
                 <li><a onclick="navigateTo('view-crevice', 'theme-black')">Crevice</a></li>
             </ul>
@@ -39,13 +39,13 @@
     <div id="view-main" class="page-view">
         <div class="main-content">
             <div class="main-visual">
-                <span style="font-size: 2.5rem; font-weight: 300; line-height: 1.5; color: #D5B942;">
+                <span class="highlight-text">
                     셀라는 천사다.<br>이 나라에서는 그렇다.
                 </span>
             </div>
             <div class="main-text">
                 <h2>THE CITADEL</h2>
-                <p style="font-size: 1.2rem; line-height: 1.8; color: #dddddd; font-weight: 300;">
+                <p>
                     구원의 도시라기에 너무나 폐허인 이곳의 이름은 성채.<br>
                     다만 인간만이 사라졌다.<br>
                     너무나 멀쩡한 건물들, 아직 마르지 않은 우물은 꽤 최근까지도 도시의 수명이 남아있었음을 보여준다.<br><br>
@@ -99,10 +99,6 @@
             천천히 상체만을 앞으로 숙인다.<br>
             <span style="color:#FF4D4D;">[ 구멍을 드래그하여 투입구에 얼굴을 가져다 댄다 ]</span>
         </div>
-        
-        <div id="terminal-overlay">
-            <div id="terminal-text"></div><span class="cursor">_</span>
-        </div>
     </div>
 
     <div id="view-photograph" class="page-view">
@@ -142,19 +138,21 @@
 쏟아져 나오는 눈 수백
 그중에 눈맞춤 단 하나도 없음</div>
             </div>
-
             <div id="obscure-rects"></div>
-
             <div id="sella-input-container">
                 <input type="text" id="sella-input" placeholder="" autocomplete="off" spellcheck="false">
             </div>
-
+            <div id="terminal-overlay">
+                <div id="terminal-text"></div><span class="cursor">_</span>
+            </div>
             <div id="rebirth-container">
                 <div class="spark"></div>
                 <div class="rebirth-text" onclick="location.reload()">빛이 있으라<br><span style="font-size:1rem; opacity:0.7;">[f5(새로고침)]</span></div>
             </div>
         </section>
     </div>
+
+    <div id="back-to-main" onclick="navigateTo('view-main', 'theme-mustard')">MAIN ←</div>
 
     <script src="js/app.js"></script>
     <script src="js/cursor.js"></script>
