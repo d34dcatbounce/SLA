@@ -15,7 +15,7 @@
         body.theme-ash { background-color: #1B1914; color: #ffffff; }
         body.theme-obsidian { background-color: #121212; color: #FF4D4D; }
 
-        #p5-cursor, #p5-cursor canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none !important; z-index: 10000; transition: opacity 0.5s; }
+        #p5-cursor, #p5-cursor canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none !important; z-index: 999999 !important; transition: opacity 0.5s; }
 
         #main-header { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 80px; justify-content: space-between; align-items: center; padding: 0 4vw; z-index: 9900; transition: opacity 0.5s ease; opacity: 0; pointer-events: none; }
         #main-header.active { display: flex; opacity: 1; pointer-events: auto; }
@@ -142,7 +142,7 @@
     
     <div id="sella-toast">
         <div class="toast-title" id="sella-toast-title">[시스템 알림]</div>
-        <div class="toast-msg" id="sella-toast-msg">SELAH 도구가 활성화되었습니다.<br>드래그하여 노이즈를 제거하세요.</div>
+        <div class="toast-msg" id="sella-toast-msg">결측치가 확산 중입니다.<br>좌상단의 SELAH. 로고를 클릭하여 가동하십시오.</div>
     </div>
 
     <canvas id="eyes-canvas"></canvas>
@@ -239,7 +239,7 @@
                 </div>
                 <div class="crevice-col" id="col-2">
                     <h3>&lt;제작기&gt;</h3>
-                    <p>글로벌 노이즈 확산, P5.js 각진 입자 커서 재조합, 그리고 터미널 동화 시퀀스까지 하드 SF적인 인터랙션을 웹 퍼포먼스 제약 내에서 극대화하기 위해 노력했습니다.</p>
+                    <p>글로벌 노이즈 확산, P5.js 각진 입자 커서 재조합, CCTV 글리치 연출, 그리고 터미널 동화 시퀀스까지 하드 SF적인 인터랙션을 극대화하기 위해 노력했습니다.</p>
                 </div>
                 <div class="crevice-col" id="col-3" onclick="triggerCosmicHorror()">
                     <h3>&lt;렌더링되지 못한 곳&gt;</h3>
@@ -418,7 +418,16 @@
             p.setup = () => { let canvas = p.createCanvas(p.windowWidth, p.windowHeight); canvas.parent('p5-cursor'); for (let i = 0; i < numParticles; i++) particles.push(new Particle(p.width / 2, p.height / 2)); };
             p.draw = () => {
                 p.clear(); 
-                if(window.isCursorHidden) return; 
+                
+                if(window.isCursorHidden) {
+                    lastMoveTime = p.millis(); 
+                    for (let pt of particles) {
+                        pt.pos.x = p.mouseX + p.random(-5, 5);
+                        pt.pos.y = p.mouseY + p.random(-5, 5);
+                        pt.vel.mult(0);
+                    }
+                    return; 
+                }
 
                 let cColor = window.currentTheme === 'theme-mustard' ? p.color('#121212') : p.color('#D5B942');
                 let cStroke = window.currentTheme === 'theme-mustard' ? p.color(0, 0, 0, 100) : p.color(213, 185, 66, 100);
@@ -470,9 +479,11 @@
 
         let isSellaToolActive = false;
         let globalHoles = [];
-        const sellaThreshold = 6; 
-        const safeThreshold = 2;  
-        const maxHoles = 20;
+        let hasShownNoiseWarning = false; // 최초 1회 경고창 방지 플래그
+        const sellaThreshold = 5; 
+        const safeThreshold = 0;  
+        const maxHoles = 15;
+        const alienChars = '꿽쒋훯믩뽫짒컗!@#%&*';
 
         function initGlobalNoise() {
             if(window.isNoiseInitialized) return;
@@ -484,10 +495,14 @@
             const toastTitle = document.getElementById('sella-toast-title');
             const toastMsg = document.getElementById('sella-toast-msg');
             const logo = document.getElementById('sella-logo');
+            
+            // 모든 글리치 가능 텍스트 요소 수집
+            const textElements = document.querySelectorAll('.story-text p, .story-text h3, .main-text p, .p-text, .crevice-col p, .crevice-col h3');
 
             function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
             window.addEventListener('resize', resize); resize();
 
+            // 6초마다 노이즈 생성 (빈도 감소)
             setInterval(() => {
                 if(currentAppView === 'intro' || window.isSystemFrozen) return;
                 
@@ -501,21 +516,50 @@
                     });
                 }
 
-                if(activeHoles.length >= sellaThreshold && !isSellaToolActive) {
-                    toastTitle.innerText = "[경고: 노이즈 임계치 초과]";
+                // 최초 5개 돌파 시 1회만 경고 알림 표시
+                if(activeHoles.length >= sellaThreshold && !hasShownNoiseWarning) {
+                    hasShownNoiseWarning = true;
+                    toastTitle.innerText = "[경고: 결측치 증가]";
                     toastTitle.style.color = "#FF4D4D"; toast.style.borderColor = "#FF4D4D";
-                    toastMsg.innerHTML = "결측치가 확산되고 있습니다.<br>강제로 SELAH 도구를 장착합니다.";
-                    activateSellaTool(true);
+                    toastMsg.innerHTML = "데이터 부패가 진행 중입니다.<br>좌상단의 SELAH. 로고를 클릭하여 도구를 가동하십시오.";
+                    toast.style.display = 'block';
                 }
-            }, 3500);
+            }, 6000);
+
+            // HTML 텍스트 DOM 글리치 (원래 글자가 가끔 왜곡됨)
+            setInterval(() => {
+                if(currentAppView === 'intro' || window.isSystemFrozen) return;
+                let activeHoles = globalHoles.filter(h => h.status === 'black');
+                if(activeHoles.length === 0) return; 
+                
+                // 현재 화면에 1~3개의 랜덤 요소 텍스트 훼손
+                for(let i=0; i < Math.floor(Math.random()*3)+1; i++) {
+                    let el = textElements[Math.floor(Math.random() * textElements.length)];
+                    if(!el.dataset.orig) el.dataset.orig = el.innerHTML;
+                    
+                    let orig = el.dataset.orig;
+                    // HTML 태그(<br> 등)는 무시하고 실제 텍스트만 확률적으로 외계어로 변환
+                    let scrambled = orig.replace(/(?![^<]*>)([^\s<])/g, (match) => {
+                        return Math.random() > 0.9 ? alienChars[Math.floor(Math.random() * alienChars.length)] : match;
+                    });
+                    
+                    el.innerHTML = scrambled;
+                    
+                    // 찰나의 순간 다시 복구
+                    setTimeout(() => {
+                        if(!window.isSystemFrozen) el.innerHTML = el.dataset.orig;
+                    }, 150 + Math.random() * 300);
+                }
+            }, 800);
 
             window.toggleSellaTool = function() {
                 if(currentAppView === 'intro' || window.isSystemFrozen) return;
                 
                 if(!isSellaToolActive) {
-                    toastTitle.innerText = "[시스템 알림]";
-                    toastTitle.style.color = "#D5B942"; toast.style.borderColor = "#D5B942";
-                    toastMsg.innerHTML = "수동 제어 활성화.<br>드래그하여 노이즈 영역을 제거하세요.";
+                    toastTitle.innerText = "[SELAH 활성화]";
+                    toastTitle.style.color = "#00FF41"; toast.style.borderColor = "#00FF41";
+                    toastMsg.innerHTML = "CCTV 트래킹 시작.<br>타겟을 드래그하여 노이즈를 제거하세요.";
+                    toast.style.display = 'block';
                 }
                 activateSellaTool(!isSellaToolActive);
             };
@@ -524,7 +568,6 @@
                 isSellaToolActive = force;
                 if(isSellaToolActive) {
                     canvas.style.pointerEvents = 'auto';
-                    toast.style.display = 'block';
                     logo.style.color = '#FF4D4D'; 
                 } else {
                     canvas.style.pointerEvents = 'none';
@@ -559,36 +602,53 @@
                 });
             });
 
-            const ascii = '01!@#$%&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             function render() {
                 ctx.clearRect(0,0, canvas.width, canvas.height);
                 let now = Date.now();
                 
                 globalHoles.forEach(h => {
                     if(h.status === 'black') {
-                        ctx.fillStyle = '#000000'; ctx.fillRect(h.x, h.y, h.w, h.h);
-                    } else if(h.status === 'glitching') {
-                        if(now > h.glitchEndTime) { h.status = 'recovered'; } 
-                        else {
-                            ctx.fillStyle = '#111111'; ctx.fillRect(h.x, h.y, h.w, h.h);
-                            ctx.fillStyle = '#FF4D4D'; ctx.font = '14px monospace'; ctx.textBaseline='top';
-                            for(let dy=0; dy<h.h; dy+=14) for(let dx=0; dx<h.w; dx+=10) if(Math.random()>0.3) ctx.fillText(ascii[Math.floor(Math.random()*ascii.length)], h.x+dx+(Math.random()-0.5)*5, h.y+dy+(Math.random()-0.5)*5);
+                        // 시각적 글리치 (단순 까만 박스가 아님)
+                        ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255, 77, 77, 0.05)' : 'rgba(0, 255, 255, 0.05)';
+                        ctx.fillRect(h.x + (Math.random()*6-3), h.y + (Math.random()*6-3), h.w, h.h);
+                        
+                        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                        for(let i=0; i<h.h; i+=4) if(Math.random()>0.5) ctx.fillRect(h.x, h.y+i, h.w, 2);
+
+                        // CCTV 트래킹 포커스
+                        if(isSellaToolActive) {
+                            let bx = h.x - 10, by = h.y - 10, bw = h.w + 20, bh = h.h + 20; let len = 15;
+                            ctx.strokeStyle = '#FF4D4D'; ctx.lineWidth = 1.5; ctx.beginPath();
+                            ctx.moveTo(bx, by + len); ctx.lineTo(bx, by); ctx.lineTo(bx + len, by);
+                            ctx.moveTo(bx + bw - len, by); ctx.lineTo(bx + bw, by); ctx.lineTo(bx + bw, by + len);
+                            ctx.moveTo(bx, by + bh - len); ctx.lineTo(bx, by + bh); ctx.lineTo(bx + len, by + bh);
+                            ctx.moveTo(bx + bw - len, by + bh); ctx.lineTo(bx + bw, by + bh); ctx.lineTo(bx + bw, by + bh - len);
+                            ctx.stroke();
+                            
+                            let cx = h.x + h.w/2, cy = h.y + h.h/2;
+                            ctx.beginPath(); ctx.moveTo(cx - 5, cy); ctx.lineTo(cx + 5, cy); ctx.moveTo(cx, cy - 5); ctx.lineTo(cx, cy + 5); ctx.stroke();
                         }
+
+                    } else if(h.status === 'glitching') {
+                        // 복구 (매트릭스 텍스트 효과)
+                        ctx.fillStyle = 'rgba(0, 255, 65, 0.1)'; ctx.fillRect(h.x, h.y, h.w, h.h);
+                        ctx.fillStyle = '#00FF41'; ctx.font = '14px monospace'; ctx.textBaseline='top';
+                        for(let dy=0; dy<h.h; dy+=15) for(let dx=0; dx<h.w; dx+=15) if(Math.random()>0.5) ctx.fillText(alienChars[Math.floor(Math.random()*alienChars.length)], h.x+dx, h.y+dy);
+                        if(now > h.glitchEndTime) { h.status = 'recovered'; }
                     }
                 });
 
                 let activeHolesCount = globalHoles.filter(h => h.status === 'black' || h.status === 'glitching').length;
-                if(isSellaToolActive && activeHolesCount <= safeThreshold && toastTitle.innerText.includes("경고")) {
+                if(isSellaToolActive && activeHolesCount <= safeThreshold && toastTitle.innerText.includes("SELAH")) {
                     toastTitle.innerText = "[시스템 안정화]";
-                    toastTitle.style.color = "#00FF41"; toast.style.borderColor = "#00FF41";
-                    toastMsg.innerHTML = "결측치가 안전 임계치 이하로 떨어졌습니다.<br>SELAH 도구를 해제합니다.";
+                    toastMsg.innerHTML = "결측치가 모두 복구되었습니다.<br>도구를 해제합니다.";
                     setTimeout(() => { if(toastTitle.innerText.includes("안정화")) activateSellaTool(false); }, 2000);
                 }
 
                 if(isDragging) {
                     let x = Math.min(startX, curX), y = Math.min(startY, curY), w = Math.abs(curX - startX), h = Math.abs(curY - startY);
-                    ctx.fillStyle = 'rgba(255,77,77,0.2)'; ctx.fillRect(x,y,w,h);
-                    ctx.strokeStyle = '#FF4D4D'; ctx.lineWidth=1.5; ctx.strokeRect(x,y,w,h);
+                    ctx.fillStyle = 'rgba(0,255,65,0.1)'; ctx.fillRect(x,y,w,h);
+                    ctx.strokeStyle = '#00FF41'; ctx.lineWidth=1.5; ctx.strokeRect(x,y,w,h);
                 }
                 requestAnimationFrame(render);
             }
@@ -742,11 +802,10 @@ process reorganize_entropy(subject @target_human) -> absolute_zero {
             document.getElementById('sella-toast').style.display = 'none';
 
             const cols = [document.getElementById('col-1'), document.getElementById('col-2'), document.getElementById('col-3')];
-            const asciiChars = '01!@#$%&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             
             let glitchInterval = setInterval(() => {
                 cols.forEach(col => {
-                    col.innerText = col.innerText.split('').map(c => (c==='\n'||c===' ')?c:((Math.random()>0.7)?asciiChars[Math.floor(Math.random()*asciiChars.length)]:c)).join('');
+                    col.innerText = col.innerText.split('').map(c => (c==='\n'||c===' ')?c:((Math.random()>0.7)?alienChars[Math.floor(Math.random()*alienChars.length)]:c)).join('');
                     col.classList.add('decaying');
                 });
             }, 50);
@@ -830,6 +889,7 @@ process reorganize_entropy(subject @target_human) -> absolute_zero {
                 window.isCursorHidden = false;
                 isSellaToolActive = false;
                 globalHoles = [];
+                hasShownNoiseWarning = false;
                 
                 currentAppView = 'intro';
                 window.currentTheme = 'theme-intro';
