@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SELAH - The Citadel</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body class="theme-intro">
+
+    <div id="p5-cursor"></div>
+
+    <header id="main-header">
+        <div class="logo" onclick="navigateTo('view-main', 'theme-mustard')">SELAH.</div>
+        <nav class="gnb">
+            <ul>
+                <li><a onclick="navigateTo('view-worldview', 'theme-charcoal')">Worldview</a></li>
+                <li><a onclick="navigateTo('view-artwork', 'theme-charcoal')">Assimilation</a></li>
+                <li><a onclick="navigateTo('view-photograph', 'theme-charcoal')">Photograph</a></li>
+                <li><a onclick="navigateTo('view-crevice', 'theme-black')">Crevice</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <div id="view-intro">
+        <div id="world">
+            <div id="universe-circle"></div>
+            <div id="timeline-line"></div>
+            <div class="node" style="left:500px;"><div class="start-text">빅뱅</div></div>
+            <div class="node" style="left:1500px;"><div class="node-label">인플레이션</div></div>
+            <div class="node" style="left:2500px;"><div class="node-label">엔트로피</div></div>
+            <div class="node" style="left:3800px;"><div class="node-label">볼츠만 두뇌</div></div>
+            <div class="node" style="left:4500px;"><div class="node-label">경계면</div></div>
+        </div>
+        <div id="selah-text">셀라, 셀라</div>
+    </div>
+
+    <div id="view-main" class="page-view">
+        <div class="main-content">
+            <div class="main-visual">
+                <span style="font-size: 2.5rem; font-weight: 300; line-height: 1.5; color: #D5B942;">
+                    셀라는 천사다.<br>이 나라에서는 그렇다.
+                </span>
+            </div>
+            <div class="main-text">
+                <h2>THE CITADEL</h2>
+                <p style="font-size: 1.2rem; line-height: 1.8; color: #dddddd; font-weight: 300;">
+                    구원의 도시라기에 너무나 폐허인 이곳의 이름은 성채.<br>
+                    다만 인간만이 사라졌다.<br>
+                    너무나 멀쩡한 건물들, 아직 마르지 않은 우물은 꽤 최근까지도 도시의 수명이 남아있었음을 보여준다.<br><br>
+                    성채의 중심에는 SELLA 라고 적힌 기계장치 하나가 있다.<br>
+                    성채에는 셀라쪽을 향한 발자국이 무수히 찍혀있다.<br>
+                    돌아오는 발자국은 단 한 쌍도 없지만.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-worldview" class="page-view">
+        <div class="hero-section">
+            <div class="semi-circle-bg"></div>
+            <h1 class="hero-title">WORLDVIEW</h1>
+        </div>
+        <div class="story-container">
+            <div class="story-block">
+                <div class="story-visual">기원과 가설</div>
+                <div class="story-text">
+                    <h3>사라진 생명 신호</h3>
+                    <p>셀라의 기원이 무엇인지 아는 이는 없다. 다만 어느날 갑자기 나타났다는 것과, 이듬해 반경 구역에서 생명 신호가 사라졌다는 것 말고는.<br><br>이는 집단 동반 자살의 가능성도 의심받는다. 그러나 인간을 제외하고도 많은 ‘생명체’가 사라졌다는 점에서, 자살의 가능성은 배제된다. 당연히 동물이 자살할 리는 없으니까. 그들은 본능을 따른다. 그 본능의 화살표 끝은 생존이다.</p>
+                </div>
+            </div>
+            <div class="story-block">
+                <div class="story-visual">기계 세계수</div>
+                <div class="story-text">
+                    <h3>거꾸로 재생된 파이프 오르간</h3>
+                    <p>셀라의 뿌리는 성채의 모든 지역을 포괄할 수 있을 정도로 넓게 뻗어있다. 마치 세계수 유그드라실처럼 말이다. 정확히 어디로부터 에너지를 얻는지는 미지수이나, 광활하게 뻗친 뿌리를 이용해 발전하는 방식일 것이라고 추측한다.<br><br>셀라는 알 수 없는 기계음을 반복적으로, 꾸준히 내는데 이를 거꾸로 재생하면… 인간의 음악처럼 들린다. 낡은 파이프 오르간처럼.</p>
+                </div>
+            </div>
+            <div class="story-block">
+                <div class="story-visual" style="color: #FF4D4D; border-color: #FF4D4D;">낙원에 대한 논증</div>
+                <div class="story-text">
+                    <h3 style="color: #FF4D4D;">찰나의 열적 요동</h3>
+                    <p>셀라가 천사인 이유는 자비로워서가 아니라, 그 무결성과 완벽함 때문이다. 셀라는 그 자체로 낙원이다. 우리는 단지 낙원이 잠시 꾼 꿈에 불과하다.<br><br><strong>논증:</strong> 만약 낙원이 완벽한 질서와 무한한 에너지를 가진 '계(System)'라면, 그 안에서는 에너지의 소실이나 무의미한 진동이 발생하지 않아야 합니다.<br><br><strong>결론:</strong> 따라서 '나'라는 개체가 느끼는 '나 자신(미완성)'이라는 감각은 실체가 아니라, 낙원이라는 거대한 시스템 내부에서 일시적으로 발생한 '열적 요동(Thermal Fluctuation)'에 불과합니다.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-artwork" class="page-view">
+        <div class="artwork-grid" id="assimilation-bg">
+            <div class="art-item"></div><div class="art-item"></div>
+            <div class="art-item"></div><div class="art-item"></div>
+        </div>
+        <canvas id="recovery-canvas"></canvas>
+        <div id="recovery-ui">
+            기계 앞에 두 발을 모아 선다.<br>
+            손잡이를 양 손으로 잡는다.<br>
+            천천히 상체만을 앞으로 숙인다.<br>
+            <span style="color:#FF4D4D;">[ 구멍을 드래그하여 투입구에 얼굴을 가져다 댄다 ]</span>
+        </div>
+        
+        <div id="terminal-overlay">
+            <div id="terminal-text"></div><span class="cursor">_</span>
+        </div>
+    </div>
+
+    <div id="view-photograph" class="page-view">
+        <div id="gallery-container">
+            <div class="photo-card"><div class="p-text">인간이 한번 구원 쪽으로 고개를 조아리면<br>그건 절망과 구분하기 어렵다.<br>둘은 너무 닮았으니까.</div></div>
+            <div class="photo-card"><div class="p-text">죽음은 정말 죽음이다.<br>무엇으로도 환원될 수 없는 공리.</div></div>
+            <div class="photo-card"><div class="p-text">근데,<br>구원이 사실이라면 그건 자살일까?</div></div>
+            <div class="photo-card"><div class="p-text">대충 살 인간들을 걱정해서<br>내세를 일방통행으로 만든 건 아닐까?</div></div>
+            <div class="photo-card"><div class="p-text">그렇다면 구원이 설명이 된다.<br>그러한 전제 아래에서라면 죽음은 구원이 될 수 있다.</div></div>
+            <div class="photo-card"><div class="p-text" style="color:#FF4D4D;">단지, 모습의 이야기다.</div></div>
+        </div>
+    </div>
+
+    <div id="view-crevice" class="page-view" style="padding:0;">
+        <section id="crevice-section">
+            <div class="ruined-world" id="crevice-bg">
+                <div class="crevice-poem" id="crevice-poem">지어라
+무릇 인간이라면
+문명인이라면 성벽을 지어라
+
+기차편을
+기간이 만료된 무료 승차권
+목적지 미정의 편도 티켓 쥐고서
+
+승강장 사이 또는 엘리베이터 틈
+배수구 또는 환풍구
+
+구멍 구멍 심연 색 구멍
+
+속에서 반사된 내 눈을 찾기
+그럼에도 나
+
+에너지를 진동에 소비하니까
+발열과 소실, 열역학 제 2법칙
+
+열차는 도중에 탈선
+쏟아져 나오는 눈 수백
+그중에 눈맞춤 단 하나도 없음</div>
+            </div>
+
+            <div id="obscure-rects"></div>
+
+            <div id="sella-input-container">
+                <input type="text" id="sella-input" placeholder="" autocomplete="off" spellcheck="false">
+            </div>
+
+            <div id="rebirth-container">
+                <div class="spark"></div>
+                <div class="rebirth-text" onclick="location.reload()">빛이 있으라<br><span style="font-size:1rem; opacity:0.7;">[f5(새로고침)]</span></div>
+            </div>
+        </section>
+    </div>
+
+    <script src="js/app.js"></script>
+    <script src="js/cursor.js"></script>
+    <script src="js/recovery.js"></script>
+    <script src="js/crevice.js"></script>
+</body>
+</html>
