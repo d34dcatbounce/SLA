@@ -1,21 +1,17 @@
-// 전역 상태 변수
 let currentAppView = 'intro';
-
-// Lerp 및 스크롤 상태
 let targetIntroScroll = 0, currentIntroScroll = 0;
 let targetGalleryAngle = 0, currentGalleryAngle = 0;
 let isZoomedOutReady = false;
 
-// DOM 요소
 const world = document.querySelector('#world');
 const circle = document.querySelector('#universe-circle');
 const selahText = document.querySelector('#selah-text');
 const photoCards = document.querySelectorAll('.photo-card');
+const backBtn = document.getElementById('back-to-main');
 
 const gRadius = window.innerWidth * 1.2;
 const gSpacing = 12;
 
-// 라우팅 (페이지 전환)
 window.navigateTo = function(pageId, themeClass) {
     currentAppView = pageId;
     document.body.className = themeClass;
@@ -24,28 +20,47 @@ window.navigateTo = function(pageId, themeClass) {
     setTimeout(() => {
         document.getElementById(pageId).classList.add('active');
         
-        // 데이터 복구 페이지 진입 시 초기화
         if(pageId === 'view-artwork' && window.initRecoveryMode) {
             window.initRecoveryMode();
+        }
+
+        if(pageId !== 'intro' && pageId !== 'view-main') {
+            backBtn.style.display = 'block';
+        } else {
+            backBtn.style.display = 'none';
         }
     }, 100);
 }
 
-// 휠 스크롤 감지 (인트로 & 사진첩 궤도용)
 window.addEventListener('wheel', (e) => {
     if (currentAppView === 'intro') {
         targetIntroScroll += e.deltaY * 1.5;
         if (targetIntroScroll < 0) targetIntroScroll = 0;
     } else if (currentAppView === 'view-photograph') {
         targetGalleryAngle += e.deltaY * 0.05;
-        
         let maxAngle = (photoCards.length - 1) * gSpacing;
         if (targetGalleryAngle < 0) targetGalleryAngle = 0;
         if (targetGalleryAngle > maxAngle) targetGalleryAngle = maxAngle;
     }
 });
 
-// 메인 렌더링 루프
+let touchStartY = 0;
+window.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
+window.addEventListener('touchmove', e => {
+    let touchY = e.touches[0].clientY;
+    let deltaY = touchStartY - touchY;
+    touchStartY = touchY;
+    if (currentAppView === 'intro') {
+        targetIntroScroll += deltaY * 2.5;
+        if (targetIntroScroll < 0) targetIntroScroll = 0;
+    } else if (currentAppView === 'view-photograph') {
+        targetGalleryAngle += deltaY * 0.1;
+        let maxAngle = (photoCards.length - 1) * gSpacing;
+        if (targetGalleryAngle < 0) targetGalleryAngle = 0;
+        if (targetGalleryAngle > maxAngle) targetGalleryAngle = maxAngle;
+    }
+});
+
 function appLoop() {
     if (currentAppView === 'intro') {
         currentIntroScroll += (targetIntroScroll - currentIntroScroll) * 0.08;
@@ -99,11 +114,8 @@ function updateGalleryView(angleValue) {
     });
 }
 
-// 인트로에서 메인 허브 진입
-// 1. 클릭 범위와 판정 완화 (타임라인 선을 눌러도 입장되도록 world 전체로 클릭 범위 확장)
 world.addEventListener('click', () => {
     if (currentAppView === 'intro') {
-        // 줌아웃이 80% 이상 진행되었다면 언제든 입장 허용
         let zoomProgress = Math.min(Math.max((currentIntroScroll - 4000) / 3000, 0), 1);
         if (zoomProgress > 0.8) {
             document.getElementById('view-intro').style.opacity = '0'; 
@@ -116,28 +128,6 @@ world.addEventListener('click', () => {
     }
 });
 
-// 2. 모바일 및 패드 환경 터치 스와이프 지원
-let touchStartY = 0;
-window.addEventListener('touchstart', e => {
-    touchStartY = e.touches[0].clientY;
-});
-window.addEventListener('touchmove', e => {
-    let touchY = e.touches[0].clientY;
-    let deltaY = touchStartY - touchY;
-    touchStartY = touchY;
-    
-    if (currentAppView === 'intro') {
-        targetIntroScroll += deltaY * 2.5;
-        if (targetIntroScroll < 0) targetIntroScroll = 0;
-    } else if (currentAppView === 'view-photograph') {
-        targetGalleryAngle += deltaY * 0.1;
-        let maxAngle = (photoCards.length - 1) * gSpacing;
-        if (targetGalleryAngle < 0) targetGalleryAngle = 0;
-        if (targetGalleryAngle > maxAngle) targetGalleryAngle = maxAngle;
-    }
-});
-
-// 세계관 스크롤 감지
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) entry.target.classList.add('visible');
@@ -145,6 +135,5 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.2 });
 document.querySelectorAll('.story-block').forEach(b => observer.observe(b));
 
-// 초기화
 world.style.transform = `translate(${(window.innerWidth/2) - 500}px, ${(window.innerHeight/2) - 2500}px) scale(1)`;
 requestAnimationFrame(appLoop);
