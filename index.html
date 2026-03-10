@@ -6,7 +6,6 @@
     <title>SELAH - The Citadel</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <style>
-        /* ================= 전역 & 테마 ================= */
         * { border-radius: 0 !important; box-sizing: border-box; }
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; overflow: hidden; transition: background-color 0.8s ease, color 0.8s ease; cursor: none; background-color: #121212; }
         
@@ -18,7 +17,6 @@
 
         #p5-cursor, #p5-cursor canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none !important; z-index: 10000; transition: opacity 0.5s; }
 
-        /* 글로벌 헤더 */
         #main-header { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 80px; justify-content: space-between; align-items: center; padding: 0 4vw; z-index: 9900; transition: opacity 0.5s ease; opacity: 0; pointer-events: none; }
         #main-header.active { display: flex; opacity: 1; pointer-events: auto; }
         .logo { font-size: 2rem; font-weight: 900; cursor: none; letter-spacing: -1px; transition: color 0.3s, text-shadow 0.3s; }
@@ -40,36 +38,27 @@
         .page-view { display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; padding-top: 100px; padding-bottom: 100px; overflow: hidden; opacity: 0; transition: opacity 0.5s ease; z-index: 10; pointer-events: auto; }
         .page-view.active { display: block; opacity: 1; }
 
-        /* 전역 노이즈 & 토스트 */
         #global-noise-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9000; pointer-events: none; }
         #sella-toast { display: none; position: fixed; top: 100px; right: 4vw; background: #121212; border: 2px solid #FF4D4D; color: #fff; padding: 25px; z-index: 9995; box-shadow: 8px 8px 0px rgba(255, 77, 77, 0.4); pointer-events: none; max-width: 350px; transition: all 0.5s ease; }
-        
-        /* 호러 이벤트 시 토스트 화면 중앙 이동 클래스 */
         .toast-center { top: 50% !important; left: 50% !important; right: auto !important; transform: translate(-50%, -50%) !important; box-shadow: 0 0 50px rgba(255,0,0,0.5) !important; z-index: 9997 !important; }
-        
         .toast-title { color: #FF4D4D; font-weight: 900; font-size: 1.2rem; margin-bottom: 15px; letter-spacing: 2px; }
         .toast-msg { font-size: 1rem; line-height: 1.6; font-weight: 300; }
 
-        /* 이벤트 캔버스 및 UI */
         #eyes-canvas { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9998; pointer-events: none; }
 
         #sella-input-container { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9999; pointer-events: auto; text-align: center; }
-        
-        /* 순백의 입력창 */
         #sella-input { background: #ffffff; border: none; outline: none; padding: 15px 30px; font-size: 2rem; text-align: center; color: #000000; font-family: 'Courier New', monospace; font-weight: 900; width: 250px; text-transform: uppercase; cursor: none; box-shadow: 0 0 30px rgba(255,255,255,0.8); }
 
         #terminal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #050505; color: #FF4D4D; font-family: 'Courier New', Courier, monospace; padding: 5vw; z-index: 10000; overflow-y: hidden; font-size: 1.2rem; font-weight:bold; line-height: 1.6; white-space: pre-wrap; cursor: none !important; pointer-events: auto; text-shadow: 0 0 5px rgba(255,77,77,0.5); }
         .cursor-blink { animation: blink 1s step-end infinite; font-weight: bold; background: #FF4D4D; color: #000; padding: 0 5px; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        /* 낙원 실행 프롬프트 (다홍색) */
         #salvation-prompt { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #050505; z-index: 10001; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 1s; pointer-events: auto; }
         .salvation-text { color: #FF4D4D; font-size: 1.8rem; margin-bottom: 50px; font-weight: 800; letter-spacing: 2px; text-align: center; text-shadow: 0 0 10px rgba(255,77,77,0.5); }
         .salvation-btn-group { display: flex; gap: 40px; }
         .salvation-btn { background: transparent; border: 2px solid #FF4D4D; color: #FF4D4D; padding: 15px 40px; font-size: 1.2rem; font-weight: bold; cursor: none; transition: all 0.3s; pointer-events: auto; }
         .salvation-btn:hover { background: #FF4D4D; color: #050505; }
         
-        /* 이스터에그: '아니오' 픽셀화 소멸 */
         .pixelate-out { animation: dissolve-btn 0.6s forwards; pointer-events: none; }
         @keyframes dissolve-btn {
             0% { filter: blur(0px); opacity: 1; transform: scale(1); }
@@ -81,7 +70,6 @@
         .rebirth-text { color: #fff; font-size: 1.5rem; text-align: center; cursor: none; letter-spacing: 4px; transition: color 0.3s; line-height: 1.8; margin-top: 60px; font-weight: 900; }
         .rebirth-text:hover { color: #D5B942; }
 
-        /* 빅뱅 회귀 플래시뱅 & 축소 애니메이션 */
         #flashbang { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #fff; z-index: 10005; opacity: 0; transition: opacity 1s; clip-path: circle(150% at 50% 50%); pointer-events: none; }
         .shrink-to-dot { animation: shrink-dot 1.5s forwards cubic-bezier(0.8, 0, 0.2, 1); }
         @keyframes shrink-dot { 0% { clip-path: circle(150% at 50% 50%); } 100% { clip-path: circle(0% at 50% 50%); opacity: 0; } }
@@ -89,7 +77,6 @@
         .spark { width: 10px; height: 10px; background: #fff; box-shadow: 0 0 30px 15px rgba(213, 185, 66, 0.9), 0 0 60px 30px rgba(255, 255, 255, 0.6); animation: pulse-spark 2s infinite; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg); }
         @keyframes pulse-spark { 0%, 100% { transform: translate(-50%, -50%) rotate(45deg) scale(1); opacity: 0.8; } 50% { transform: translate(-50%, -50%) rotate(45deg) scale(1.5); opacity: 1; } }
 
-        /* ================= 1. 인트로 ================= */
         #view-intro { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100vh; overflow: hidden; z-index: 1000; padding: 0; transition: opacity 0.8s ease; }
         #world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform-origin: 0 0; will-change: transform; pointer-events: auto; }
         #universe-shape { position: absolute; top: 732px; left: 732px; width: 3535px; height: 3535px; border: 2px solid rgba(255, 255, 255, 0.05); transform: rotate(45deg); transition: border-color 0.1s; pointer-events: none; }
@@ -102,7 +89,6 @@
         .start-text { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); font-weight: 900; color: #D5B942; letter-spacing: 2px; }
         #selah-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; font-weight: 900; letter-spacing: 0.8rem; color: #121212; text-shadow: -1px -1px 0 #D5B942, 1px -1px 0 #D5B942, -1px 1px 0 #D5B942, 1px 1px 0 #D5B942; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 999; }
 
-        /* ================= 2. 성채 ================= */
         #view-main .main-content { display: flex; flex-wrap: wrap; height: 100%; padding: 4vw; gap: 4vw; align-items: center; }
         .main-visual { flex: 1.5; min-height: 60vh; border: 3px solid #121212; display: flex; justify-content: center; align-items: center; text-align: center; position: relative; overflow: hidden; }
         .main-visual::before { content:''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(18,18,18,0.05) 10px, rgba(18,18,18,0.05) 20px); pointer-events: none; }
@@ -111,7 +97,6 @@
         .highlight-text { font-size: 2.8rem; font-weight: 800; line-height: 1.4; color: #121212; }
         .main-text p { font-size: 1.15rem; line-height: 1.8; font-weight: 500; }
 
-        /* ================= 3. 관측일지 ================= */
         #wv-scroll-container { width: 100%; position: absolute; top: 100px; left: 0; will-change: transform; }
         .angular-bg { position: absolute; top: -20vh; left: -20vw; width: 150vw; height: 80vh; background-color: #121212; transform: rotate(-5deg); z-index: -1; pointer-events: none; border-bottom: 2px solid #D5B942; }
         .hero-section { position: relative; width: 100%; height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
@@ -126,13 +111,11 @@
         .story-text h3 { color: #D5B942; font-size: 2.2rem; margin-bottom: 20px; font-weight: 800; } 
         .story-text p { font-size: 1.1rem; line-height: 1.9; color: #dddddd; font-weight: 400; }
 
-        /* ================= 4. 기록보관소 ================= */
         #view-photograph { padding: 0; }
         #gallery-container { position: relative; width: 100%; height: 100%; pointer-events: none; }
         .photo-card { position: absolute; width: 340px; height: 480px; background: #121212; border: 2px solid #D5B942; top: 50%; left: 50%; transform-origin: center center; display: flex; align-items: center; justify-content: center; color: #fff; will-change: transform, opacity; box-shadow: 15px 15px 0px rgba(0,0,0,0.5); }
         .p-text { padding: 40px; text-align: center; font-size: 1.2rem; line-height: 1.8; font-weight: 500; }
 
-        /* ================= 5. 데이터센터 ================= */
         #crevice-section { position: relative; width: 100%; height: 100vh; background-color: #121212; overflow: hidden; }
         .ruined-world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, #121212, #121212 2px, #1a1a1a 2px, #1a1a1a 4px); z-index: 1; pointer-events: none; opacity: 0.5; }
         
@@ -165,7 +148,7 @@
     <canvas id="eyes-canvas"></canvas>
 
     <div id="sella-input-container">
-        <input type="text" id="sella-input" placeholder="SELLA" autocomplete="off" spellcheck="false">
+        <input type="text" id="sella-input" placeholder="" autocomplete="off" spellcheck="false">
     </div>
 
     <header id="main-header">
@@ -303,7 +286,6 @@
         const gRadius = window.innerWidth * 1.2;
         const gSpacing = 12;
         
-        // 원본 텍스트 저장용 (리셋 시 사용)
         const origText1 = document.getElementById('col-1').innerText;
         const origText2 = document.getElementById('col-2').innerText;
         const origText3 = document.getElementById('col-3').innerText;
@@ -431,13 +413,12 @@
         world.style.transform = `translate(${(window.innerWidth/2) - 500}px, ${(window.innerHeight/2) - 2500}px) scale(1)`;
         requestAnimationFrame(appLoop);
 
-        /* ================= P5 커서 엔진 ================= */
         const cursorSketch = (p) => {
             let particles = []; const numParticles = 250; let lastMouseX = 0, lastMouseY = 0, lastMoveTime = 0; const idleThreshold = 1500;
             p.setup = () => { let canvas = p.createCanvas(p.windowWidth, p.windowHeight); canvas.parent('p5-cursor'); for (let i = 0; i < numParticles; i++) particles.push(new Particle(p.width / 2, p.height / 2)); };
             p.draw = () => {
                 p.clear(); 
-                if(window.isCursorHidden) return; // 호러 이벤트 시 숨김
+                if(window.isCursorHidden) return; 
 
                 let cColor = window.currentTheme === 'theme-mustard' ? p.color('#121212') : p.color('#D5B942');
                 let cStroke = window.currentTheme === 'theme-mustard' ? p.color(0, 0, 0, 100) : p.color(213, 185, 66, 100);
@@ -614,14 +595,13 @@
             render();
         }
 
-        /* ================= 5. 호러 & 붕괴 & 빅뱅 루프 시스템 ================= */
         const terminalOverlay = document.getElementById('terminal-overlay');
         const rebirthContainer = document.getElementById('rebirth-container');
         const terminalText = document.getElementById('terminal-text');
         const eyesCanvas = document.getElementById('eyes-canvas');
         const eyesCtx = eyesCanvas.getContext('2d');
         let eyesData = [];
-        let isCollapseTriggered = false; // 중복 엔터 방지
+        let isCollapseTriggered = false; 
 
         function resizeEyes() { eyesCanvas.width = window.innerWidth; eyesCanvas.height = window.innerHeight; }
         window.addEventListener('resize', resizeEyes); resizeEyes();
@@ -674,11 +654,10 @@ process reorganize_entropy(subject @target_human) -> absolute_zero {
             if(window.isSystemFrozen) return; 
             
             window.isSystemFrozen = true;
-            window.isCursorHidden = true; // 호러 중 커서 숨김
+            window.isCursorHidden = true; 
             document.getElementById('crevice-content').style.pointerEvents = 'none';
             document.getElementById('main-header').style.opacity = '0';
 
-            // 토스트를 화면 중앙으로 강제 이동
             const toast = document.getElementById('sella-toast');
             toast.classList.add('toast-center');
             document.getElementById('sella-toast-title').innerText = "FATAL_ERROR_0xDEAD";
@@ -737,7 +716,7 @@ process reorganize_entropy(subject @target_human) -> absolute_zero {
 
             inputField.addEventListener('keydown', (e) => {
                 if(e.key === 'Enter') {
-                    if(isCollapseTriggered) return; // 중복 엔터 완벽 방지
+                    if(isCollapseTriggered) return; 
                     if(inputField.value.trim().toUpperCase() === 'SELLA' || inputField.value.trim() === '셀라') {
                         isCollapseTriggered = true;
                         triggerSystemCollapse();
@@ -783,29 +762,27 @@ process reorganize_entropy(subject @target_human) -> absolute_zero {
                 
                 typeWriter(sPlusPlusCode, 0, () => {
                     setTimeout(() => {
-                        // 터미널 끝나고 낙원 프롬프트 띄우기
                         terminalOverlay.style.display = 'none';
                         const promptUI = document.getElementById('salvation-prompt');
                         promptUI.style.display = 'flex';
-                        void promptUI.offsetWidth; // 리플로우 강제
+                        void promptUI.offsetWidth; 
                         promptUI.style.opacity = '1';
                         
-                        window.isCursorHidden = false; // 선택을 위해 커서 복구
+                        window.isCursorHidden = false; 
                     }, 2000);
                 });
             }, 1500);
         }
 
-        /* 이스터에그 및 낙원 프롬프트 로직 */
         const btnNo = document.getElementById('btn-no');
         btnNo.addEventListener('mouseenter', () => {
-            btnNo.classList.add('pixelate-out'); // 아니오 버튼 소멸 이스터에그
+            btnNo.classList.add('pixelate-out'); 
         });
 
         const btnYes = document.getElementById('btn-yes');
         btnYes.addEventListener('click', () => {
             document.getElementById('salvation-prompt').style.display = 'none';
-            window.isCursorHidden = true; // 커서 다시 숨김
+            window.isCursorHidden = true; 
             
             const rebirth = document.getElementById('rebirth-container');
             rebirth.style.display = 'flex';
@@ -813,15 +790,13 @@ process reorganize_entropy(subject @target_human) -> absolute_zero {
             rebirth.style.opacity = '1';
         });
 
-        /* 빅뱅으로 회귀 (DOM 완전 리셋) */
         window.executeRebirth = function() {
             const flash = document.getElementById('flashbang');
             flash.style.display = 'block';
             void flash.offsetWidth;
-            flash.style.opacity = '1'; // 화면 새하얗게 덮음
+            flash.style.opacity = '1'; 
             
             setTimeout(() => {
-                // 백그라운드에서 모든 상태 리셋
                 document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
                 document.getElementById('view-intro').style.display = 'block';
                 document.getElementById('view-intro').style.opacity = '1';
@@ -845,7 +820,7 @@ process reorganize_entropy(subject @target_human) -> absolute_zero {
                 document.getElementById('sella-input').value = '';
                 
                 document.getElementById('salvation-prompt').style.display = 'none';
-                btnNo.classList.remove('pixelate-out'); // 이스터에그 버튼 복구
+                btnNo.classList.remove('pixelate-out'); 
                 
                 document.getElementById('rebirth-container').style.display = 'none';
                 document.getElementById('terminal-overlay').style.display = 'none';
@@ -862,7 +837,6 @@ process reorganize_entropy(subject @target_human) -> absolute_zero {
                 currentIntroScroll = 0; targetIntroScroll = 0;
                 isZoomedOutReady = false;
                 
-                // 점으로 모이는 축소 애니메이션 실행
                 flash.classList.add('shrink-to-dot');
                 
                 setTimeout(() => {
