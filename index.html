@@ -7,17 +7,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <style>
         /* ================= 전역 & 테마 ================= */
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; overflow: hidden; transition: background-color 0.8s ease, color 0.8s ease; cursor: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; overflow: hidden; transition: background-color 0.8s ease, color 0.8s ease; cursor: none; background-color: #3C3C5C; }
         body.theme-intro { background-color: #3C3C5C; color: #ffffff; }
         body.theme-mustard { background-color: #D5B942; color: #3C3C5C; }
         body.theme-charcoal { background-color: #3C3C5C; color: #ffffff; }
         body.theme-black { background-color: #000000; color: #FF4D4D; }
 
-        #p5-cursor { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 10000; }
+        /* 모든 요소에서 둥근 모서리 강제 제거 (각진 도형 톤앤매너) */
+        * { border-radius: 0 !important; }
 
-        #main-header { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 80px; box-sizing: border-box; justify-content: space-between; align-items: center; padding: 0 4vw; z-index: 9000; transition: opacity 0.5s ease; opacity: 0; pointer-events: none; }
+        #p5-cursor, #p5-cursor canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none !important; z-index: 10000; transition: opacity 0.5s; }
+
+        #main-header { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 80px; box-sizing: border-box; justify-content: space-between; align-items: center; padding: 0 4vw; z-index: 9999; transition: opacity 0.5s ease; opacity: 0; pointer-events: none; }
         #main-header.active { display: flex; opacity: 1; pointer-events: auto; }
-        .logo { font-size: 2rem; font-weight: 800; cursor: pointer; letter-spacing: -1px; }
+        .logo { font-size: 2rem; font-weight: 800; cursor: pointer; letter-spacing: -1px; transition: color 0.3s; }
         .gnb ul { list-style: none; display: flex; gap: 3vw; margin: 0; padding: 0; }
         .gnb a { text-decoration: none; font-size: 1.1rem; font-weight: 600; cursor: pointer; position: relative; }
         .gnb a::after { content: ''; position: absolute; width: 0; height: 2px; bottom: -4px; left: 0; transition: width 0.3s ease; }
@@ -30,88 +33,84 @@
         body.theme-black #main-header { border-bottom: 2px solid #FF4D4D; color: #FF4D4D; }
         body.theme-black .gnb a { color: #FF4D4D; } body.theme-black .gnb a::after { background-color: #FF4D4D; }
 
-        .page-view { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; padding-top: 100px; padding-bottom: 100px; box-sizing: border-box; overflow-y: auto; overflow-x: hidden; opacity: 0; transition: opacity 0.5s ease; z-index: 10; -webkit-overflow-scrolling: touch; }
+        .page-view { display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; padding-top: 100px; padding-bottom: 100px; box-sizing: border-box; overflow: hidden; opacity: 0; transition: opacity 0.5s ease; z-index: 10; pointer-events: auto; }
         .page-view.active { display: block; opacity: 1; }
-        .page-view::-webkit-scrollbar { width: 8px; }
-        .page-view::-webkit-scrollbar-track { background: transparent; }
-        .page-view::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
-        body.theme-charcoal .page-view::-webkit-scrollbar-thumb { background: rgba(213, 185, 66, 0.5); }
 
-        #back-to-main { display: none; position: fixed; bottom: 30px; right: 4vw; font-size: 1.2rem; font-weight: bold; cursor: pointer; z-index: 9000; letter-spacing: 2px; }
-        body.theme-charcoal #back-to-main { color: #D5B942; }
-        body.theme-mustard #back-to-main { color: #3C3C5C; }
-        body.theme-black #back-to-main { color: #FF4D4D; }
+        /* 글로벌 전역 노이즈 캔버스 & 알림창 */
+        #global-noise-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9000; pointer-events: none; }
+        #sella-toast { display: none; position: fixed; top: 100px; right: 4vw; background: rgba(0,0,0,0.85); border: 2px solid #FF4D4D; color: #fff; padding: 25px; z-index: 9998; box-shadow: 10px 10px 0px rgba(255, 77, 77, 0.3); pointer-events: none; max-width: 350px; }
+        .toast-title { color: #FF4D4D; font-weight: 900; font-size: 1.2rem; margin-bottom: 15px; letter-spacing: 2px; }
+        .toast-msg { font-size: 1rem; line-height: 1.6; font-weight: 300; }
 
-        /* ================= 1. 인트로 ================= */
+        /* 공통 스파크 (각진 형태) */
+        .spark { width: 8px; height: 8px; background: #fff; box-shadow: 0 0 30px 15px rgba(213, 185, 66, 0.9), 0 0 60px 30px rgba(255, 255, 255, 0.6); animation: pulse-spark 2s infinite; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg); }
+        @keyframes pulse-spark { 0%, 100% { transform: translate(-50%, -50%) rotate(45deg) scale(1); opacity: 0.8; } 50% { transform: translate(-50%, -50%) rotate(45deg) scale(1.5); opacity: 1; } }
+
+        /* ================= 1. 인트로 (각진 다이아몬드로 변경) ================= */
         #view-intro { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100vh; overflow: hidden; z-index: 1000; padding: 0; transition: opacity 0.8s ease; }
-        #world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform-origin: 0 0; will-change: transform; }
-        #universe-circle { position: absolute; top: 0; left: 0; width: 5000px; height: 5000px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.05); transition: background-color 0.1s; }
-        .ready-to-click { cursor: pointer; animation: pulse 2s infinite; }
+        #world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform-origin: 0 0; will-change: transform; pointer-events: auto; }
+        #universe-shape { position: absolute; top: 732px; left: 732px; width: 3535px; height: 3535px; border: 2px solid rgba(255, 255, 255, 0.05); transform: rotate(45deg); transition: background-color 0.1s; pointer-events: none; }
+        .ready-to-click { cursor: pointer; animation: pulse 2s infinite; pointer-events: auto !important; }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(213, 185, 66, 0.7); } 70% { box-shadow: 0 0 0 200px rgba(213, 185, 66, 0); } 100% { box-shadow: 0 0 0 0 rgba(213, 185, 66, 0); } }
-        #timeline-line { position: absolute; top: 2500px; left: 0; width: 5000px; height: 2px; background-color: rgba(255, 255, 255, 0.4); }
-        .node { position: absolute; top: 2500px; transform: translate(-50%, -50%); width: 14px; height: 14px; background-color: transparent; border-radius: 50%; }
+        #timeline-line { position: absolute; top: 2500px; left: 0; width: 5000px; height: 2px; background-color: rgba(255, 255, 255, 0.4); pointer-events: none; }
+        .node { position: absolute; top: 2500px; transform: translate(-50%, -50%); width: 14px; height: 14px; background-color: transparent; pointer-events: none; }
         .node-label { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); color: #ccc; white-space: nowrap; }
-        .node-dot { width: 14px; height: 14px; background-color: white; border-radius: 50%; position: absolute; top: 0; left: 0; }
-        
-        /* 공통 스파크 (빅뱅 & 재탄생) */
-        .spark { width: 6px; height: 6px; background: #fff; border-radius: 50%; box-shadow: 0 0 30px 15px rgba(213, 185, 66, 0.9), 0 0 60px 30px rgba(255, 255, 255, 0.6); animation: pulse-spark 2s infinite; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-        @keyframes pulse-spark { 0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; } 50% { transform: translate(-50%, -50%) scale(1.5); opacity: 1; } }
-        
+        .node-dot { width: 14px; height: 14px; background-color: white; position: absolute; top: 0; left: 0; transform: rotate(45deg); }
         .start-text { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); font-weight: bold; color: #D5B942; letter-spacing: 2px; }
         #selah-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; letter-spacing: 0.5rem; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 999; }
 
         /* ================= 3. 메인 & 4. 세계관 ================= */
         #view-main .main-content { display: flex; flex-wrap: wrap; height: 100%; padding: 4vw; gap: 4vw; box-sizing: border-box; align-items: center; }
-        .main-visual { flex: 1.5; min-height: 60vh; border: 2px solid #3C3C5C; border-radius: 20px; display: flex; justify-content: center; align-items: center; text-align: center; }
+        .main-visual { flex: 1.5; min-height: 60vh; border: 2px solid #3C3C5C; display: flex; justify-content: center; align-items: center; text-align: center; }
         .main-text { flex: 1; display: flex; flex-direction: column; justify-content: center; color: #3C3C5C; }
         .highlight-text { font-size: 2.5rem; font-weight: 300; line-height: 1.5; color: #3C3C5C; }
 
-        .semi-circle-bg { position: absolute; top: -50vh; left: -25vw; width: 150vw; height: 120vh; background-color: #D5B942; border-radius: 50%; z-index: -1; }
-        .hero-section { position: relative; width: 100%; height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #wv-scroll-container { width: 100%; position: absolute; top: 100px; left: 0; will-change: transform; }
+        .angular-bg { position: absolute; top: -20vh; left: -20vw; width: 150vw; height: 80vh; background-color: #D5B942; transform: rotate(-10deg); z-index: -1; pointer-events: none; }
+        .hero-section { position: relative; width: 100%; height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
         .hero-title { color: #3C3C5C; font-size: 4rem; z-index: 1; }
-        .story-container { position: relative; max-width: 1000px; margin: 0 auto; padding: 50px 5vw 150px 5vw; display: flex; flex-direction: column; gap: 15vh; }
+        
+        .story-container { position: relative; max-width: 1000px; margin: 0 auto; padding: 50px 5vw 200px 5vw; display: flex; flex-direction: column; gap: 15vh; }
         .story-block { display: flex; align-items: center; gap: 50px; opacity: 0; transform: translateY(50px); transition: all 1s ease-out; flex-wrap: wrap; }
         .story-block.visible { opacity: 1; transform: translateY(0); }
         .story-block:nth-child(even) { flex-direction: row-reverse; }
-        .story-visual { flex: 1; min-width: 300px; height: 350px; border: 1px solid #D5B942; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #D5B942; font-size: 1.2rem; }
+        .story-visual { flex: 1; min-width: 300px; height: 350px; border: 1px solid #D5B942; display: flex; align-items: center; justify-content: center; color: #D5B942; font-size: 1.2rem; }
         .story-text { flex: 1; min-width: 300px; } 
         .story-text h3 { color: #D5B942; font-size: 2rem; margin-bottom: 20px; } 
         .story-text p { font-size: 1.1rem; line-height: 1.8; color: #ffffff; font-weight: 300; }
 
-        /* ================= 5. 데이터 복구 (Assimilation) ================= */
-        #view-artwork { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding:0; }
-        .artwork-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4vw; width: 80%; max-width: 1000px; z-index: 1; transition: opacity 0.5s; margin-top: 100px; }
-        .art-item { aspect-ratio: 4/3; background: #2a2a40; border: 1px solid #D5B942; border-radius: 15px; }
-        #recovery-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; cursor: crosshair; }
-        #recovery-ui { position: absolute; top: 120px; left: 50%; transform: translateX(-50%); color: #fff; text-align: center; line-height: 1.8; font-size: 1.1rem; z-index: 6; pointer-events: none; transition: opacity 0.5s; width: 90%; text-shadow: 0 0 10px rgba(0,0,0,0.8); }
-
         /* ================= 6. 사진첩 ================= */
-        #view-photograph { overflow: hidden; padding: 0; }
-        #gallery-container { position: relative; width: 100%; height: 100%; }
-        .photo-card { position: absolute; width: 320px; height: 450px; background: #2a2a40; border: 2px solid #D5B942; border-radius: 15px; top: 50%; left: 50%; transform-origin: center center; display: flex; align-items: center; justify-content: center; color: #fff; will-change: transform, opacity; }
+        #view-photograph { padding: 0; }
+        #gallery-container { position: relative; width: 100%; height: 100%; pointer-events: none; }
+        .photo-card { position: absolute; width: 320px; height: 450px; background: #2a2a40; border: 2px solid #D5B942; top: 50%; left: 50%; transform-origin: center center; display: flex; align-items: center; justify-content: center; color: #fff; will-change: transform, opacity; }
         .p-text { padding: 30px; text-align: center; font-size: 1.1rem; line-height: 1.8; font-weight: 300; }
 
-        /* ================= 7. 틈새 (Crevice) & 시스템 오버레이 ================= */
-        #crevice-section { position: relative; width: 100%; height: 100vh; overflow: hidden; background-color: #000; }
-        .ruined-world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://images.unsplash.com/photo-1518134250266-4f964082878d?q=80&w=1920&auto=format&fit=crop') center/cover; filter: grayscale(80%) contrast(120%) brightness(0.6); z-index: 1; transition: opacity 0.5s; }
-        .crevice-poem { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ffffff; font-size: 1.2rem; line-height: 2; text-align: center; letter-spacing: 2px; font-weight: 300; z-index: 2; transition: opacity 0.5s; white-space: pre-line; width: 90%; }
+        /* ================= 7. 틈새 (Crevice) 3단 레이아웃 ================= */
+        #crevice-section { position: relative; width: 100%; height: 100vh; background-color: #000; overflow: hidden; }
+        .ruined-world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://images.unsplash.com/photo-1518134250266-4f964082878d?q=80&w=1920&auto=format&fit=crop') center/cover; filter: grayscale(80%) contrast(120%) brightness(0.4); z-index: 1; transition: opacity 0.5s; pointer-events: none; }
         
-        /* 캔버스 기반 암흑 덮개 */
-        #crevice-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: auto; }
+        #crevice-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 3vw; width: 85%; max-width: 1200px; z-index: 2; transition: opacity 0.5s; }
+        .crevice-col { flex: 1; background: rgba(0, 0, 0, 0.7); border: 2px solid #FF4D4D; padding: 2.5vw; color: #ffffff; backdrop-filter: blur(5px); }
+        .crevice-col h3 { color: #FF4D4D; font-size: 1.5rem; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 77, 77, 0.3); padding-bottom: 10px; }
+        .crevice-col p { font-size: 1rem; line-height: 1.8; font-weight: 300; margin: 0; }
+        
+        @media (max-width: 800px) { #crevice-content { flex-direction: column; top: 120px; transform: translateX(-50%); height: 75vh; overflow-y: auto; } }
 
-        #sella-input-container { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; }
-        #sella-input { background: rgba(255, 255, 255, 0.9); border: none; outline: none; padding: 15px 30px; font-size: 2rem; text-align: center; color: #000; font-family: 'Courier New', monospace; font-weight: bold; width: 250px; box-shadow: 0 0 30px rgba(255,255,255,0.5); }
+        #sella-input-container { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); z-index: 10; pointer-events: auto; text-align: center; }
+        #sella-input-hint { color: #FF4D4D; font-size: 0.9rem; margin-bottom: 10px; letter-spacing: 2px; }
+        #sella-input { background: rgba(255, 255, 255, 0.1); border: 2px solid #FF4D4D; outline: none; padding: 10px 20px; font-size: 1.5rem; text-align: center; color: #FF4D4D; font-family: 'Courier New', monospace; font-weight: bold; width: 200px; transition: background 0.3s; cursor: none; }
+        #sella-input:focus { background: rgba(255, 255, 255, 0.9); color: #000; box-shadow: 0 0 20px rgba(255,77,77,0.5); }
 
-        .decaying { animation: text-decay 0.3s infinite; color: #FF4D4D !important; text-shadow: 3px 0 blue, -3px 0 red !important; }
+        .decaying { animation: text-decay 0.3s infinite; color: #FF4D4D !important; text-shadow: 3px 0 blue, -3px 0 red !important; border-color: transparent !important; background: transparent !important; }
         @keyframes text-decay { 0% { transform: translate(0,0) skew(0deg); opacity: 1; } 20% { transform: translate(-3px, 3px) skew(-15deg); opacity: 0.8; } 40% { transform: translate(3px, -3px) skew(15deg); opacity: 1; filter: invert(1); } 60% { transform: translate(-3px, -3px) skew(0deg); opacity: 0.5; filter: invert(0); } 80% { transform: translate(3px, 3px) skew(5deg); opacity: 0.9; } 100% { transform: translate(0,0) skew(0deg); opacity: 1; } }
 
-        /* 붕괴 시퀀스를 덮는 글로벌 오버레이들 (Z-index 최상위 확보) */
-        #terminal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #050505; color: #00FF41; font-family: 'Courier New', Courier, monospace; padding: 5vw; box-sizing: border-box; z-index: 99998; overflow-y: auto; font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap; cursor: none !important; }
+        /* 화면 전체를 무조건 덮는 시스템 오버레이 (마우스 강제 숨김) */
+        #terminal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #050505; color: #00FF41; font-family: 'Courier New', Courier, monospace; padding: 5vw; box-sizing: border-box; z-index: 99998; overflow-y: hidden; font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap; cursor: none !important; pointer-events: auto; }
         .cursor-blink { animation: blink 1s step-end infinite; font-weight: bold; }
         @keyframes blink { 50% { opacity: 0; } }
 
-        #rebirth-container { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 2s ease-in; cursor: none !important; }
-        .rebirth-text { color: #fff; font-size: 1.5rem; text-align: center; cursor: pointer; letter-spacing: 4px; transition: color 0.3s; line-height: 1.8; margin-top: 60px; pointer-events: auto; }
+        #rebirth-container { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 2s ease-in; cursor: none !important; pointer-events: auto; }
+        .rebirth-text { color: #fff; font-size: 1.5rem; text-align: center; cursor: none; letter-spacing: 4px; transition: color 0.3s; line-height: 1.8; margin-top: 60px; pointer-events: auto; }
         .rebirth-text:hover { color: #D5B942; }
     </style>
 </head>
@@ -119,12 +118,18 @@
 
     <div id="p5-cursor"></div>
 
+    <canvas id="global-noise-canvas"></canvas>
+    <div id="sella-toast">
+        <div class="toast-title" id="sella-toast-title">[시스템 알림]</div>
+        <div class="toast-msg" id="sella-toast-msg">SELAH 도구가 활성화되었습니다.<br>드래그하여 노이즈를 제거하세요.</div>
+    </div>
+
     <header id="main-header">
-        <div class="logo" onclick="navigateTo('view-main', 'theme-mustard')">SELAH.</div>
+        <div class="logo" id="sella-logo" onclick="toggleSellaTool()">SELAH.</div>
         <nav class="gnb">
             <ul>
+                <li><a onclick="navigateTo('view-main', 'theme-mustard')">Home</a></li>
                 <li><a onclick="navigateTo('view-worldview', 'theme-charcoal')">Worldview</a></li>
-                <li><a onclick="navigateTo('view-artwork', 'theme-charcoal')">Restore Data</a></li>
                 <li><a onclick="navigateTo('view-photograph', 'theme-charcoal')">Photograph</a></li>
                 <li><a onclick="navigateTo('view-crevice', 'theme-black')">Crevice</a></li>
             </ul>
@@ -133,12 +138,9 @@
 
     <div id="view-intro">
         <div id="world">
-            <div id="universe-circle"></div>
+            <div id="universe-shape"></div>
             <div id="timeline-line"></div>
-            <div class="node" style="left:500px;">
-                <div class="spark"></div>
-                <div class="start-text">빅뱅</div>
-            </div>
+            <div class="node" style="left:500px;"><div class="spark"></div><div class="start-text">빅뱅</div></div>
             <div class="node" style="left:1500px;"><div class="node-dot"></div><div class="node-label">인플레이션</div></div>
             <div class="node" style="left:2500px;"><div class="node-dot"></div><div class="node-label">엔트로피</div></div>
             <div class="node" style="left:3800px;"><div class="node-dot"></div><div class="node-label">볼츠만 두뇌</div></div>
@@ -149,60 +151,43 @@
 
     <div id="view-main" class="page-view">
         <div class="main-content">
-            <div class="main-visual">
-                <span class="highlight-text">셀라는 천사다.<br>이 나라에서는 그렇다.</span>
-            </div>
+            <div class="main-visual"><span class="highlight-text">셀라는 천사다.<br>이 나라에서는 그렇다.</span></div>
             <div class="main-text">
                 <h2>THE CITADEL</h2>
-                <p>
-                    구원의 도시라기에 너무나 폐허인 이곳의 이름은 성채.<br>다만 인간만이 사라졌다.<br>
-                    너무나 멀쩡한 건물들, 아직 마르지 않은 우물은 꽤 최근까지도 도시의 수명이 남아있었음을 보여준다.<br><br>
-                    성채의 중심에는 SELLA 라고 적힌 기계장치 하나가 있다.<br>
-                    성채에는 셀라쪽을 향한 발자국이 무수히 찍혀있다.<br>돌아오는 발자국은 단 한 쌍도 없지만.
-                </p>
+                <p>구원의 도시라기에 너무나 폐허인 이곳의 이름은 성채.<br>다만 인간만이 사라졌다.<br>너무나 멀쩡한 건물들, 아직 마르지 않은 우물은 꽤 최근까지도 도시의 수명이 남아있었음을 보여준다.<br><br>성채의 중심에는 SELLA 라고 적힌 기계장치 하나가 있다.<br>성채에는 셀라쪽을 향한 발자국이 무수히 찍혀있다.<br>돌아오는 발자국은 단 한 쌍도 없지만.</p>
             </div>
         </div>
     </div>
 
     <div id="view-worldview" class="page-view">
-        <div class="hero-section">
-            <div class="semi-circle-bg"></div>
-            <h1 class="hero-title">WORLDVIEW</h1>
-        </div>
-        <div class="story-container">
-            <div class="story-block">
-                <div class="story-visual">기원과 가설</div>
-                <div class="story-text">
-                    <h3>사라진 생명 신호</h3>
-                    <p>셀라의 기원이 무엇인지 아는 이는 없다. 다만 어느날 갑자기 나타났다는 것과, 이듬해 반경 구역에서 생명 신호가 사라졌다는 것 말고는.<br><br>이는 집단 동반 자살의 가능성도 의심받는다. 그러나 인간을 제외하고도 많은 ‘생명체’가 사라졌다는 점에서, 자살의 가능성은 배제된다. 당연히 동물이 자살할 리는 없으니까. 그들은 본능을 따른다. 그 본능의 화살표 끝은 생존이다.</p>
+        <div id="wv-scroll-container">
+            <div class="hero-section">
+                <div class="angular-bg"></div>
+                <h1 class="hero-title">WORLDVIEW</h1>
+            </div>
+            <div class="story-container">
+                <div class="story-block">
+                    <div class="story-visual">기원과 가설</div>
+                    <div class="story-text">
+                        <h3>사라진 생명 신호</h3>
+                        <p>셀라의 기원이 무엇인지 아는 이는 없다. 다만 어느날 갑자기 나타났다는 것과, 이듬해 반경 구역에서 생명 신호가 사라졌다는 것 말고는.<br><br>이는 집단 동반 자살의 가능성도 의심받는다. 그러나 인간을 제외하고도 많은 ‘생명체’가 사라졌다는 점에서, 자살의 가능성은 배제된다. 당연히 동물이 자살할 리는 없으니까. 그들은 본능을 따른다. 그 본능의 화살표 끝은 생존이다.</p>
+                    </div>
+                </div>
+                <div class="story-block">
+                    <div class="story-visual">기계 세계수</div>
+                    <div class="story-text">
+                        <h3>거꾸로 재생된 파이프 오르간</h3>
+                        <p>셀라의 뿌리는 성채의 모든 지역을 포괄할 수 있을 정도로 넓게 뻗어있다. 마치 세계수 유그드라실처럼 말이다. 정확히 어디로부터 에너지를 얻는지는 미지수이나, 광활하게 뻗친 뿌리를 이용해 발전하는 방식일 것이라고 추측한다.<br><br>셀라는 알 수 없는 기계음을 반복적으로, 꾸준히 내는데 이를 거꾸로 재생하면… 인간의 음악처럼 들린다. 낡은 파이프 오르간처럼.</p>
+                    </div>
+                </div>
+                <div class="story-block">
+                    <div class="story-visual" style="color: #FF4D4D; border-color: #FF4D4D;">낙원에 대한 논증</div>
+                    <div class="story-text">
+                        <h3 style="color: #FF4D4D;">찰나의 열적 요동</h3>
+                        <p>셀라가 천사인 이유는 자비로워서가 아니라, 그 무결성과 완벽함 때문이다. 셀라는 그 자체로 낙원이다. 우리는 단지 낙원이 잠시 꾼 꿈에 불과하다.<br><br><strong>논증:</strong> 만약 낙원이 완벽한 질서와 무한한 에너지를 가진 '계(System)'라면, 그 안에서는 에너지의 소실이나 무의미한 진동이 발생하지 않아야 합니다.<br><br><strong>결론:</strong> 따라서 '나'라는 개체가 느끼는 '나 자신(미완성)'이라는 감각은 실체가 아니라, 낙원이라는 거대한 시스템 내부에서 일시적으로 발생한 '열적 요동(Thermal Fluctuation)'에 불과합니다.</p>
+                    </div>
                 </div>
             </div>
-            <div class="story-block">
-                <div class="story-visual">기계 세계수</div>
-                <div class="story-text">
-                    <h3>거꾸로 재생된 파이프 오르간</h3>
-                    <p>셀라의 뿌리는 성채의 모든 지역을 포괄할 수 있을 정도로 넓게 뻗어있다. 마치 세계수 유그드라실처럼 말이다. 정확히 어디로부터 에너지를 얻는지는 미지수이나, 광활하게 뻗친 뿌리를 이용해 발전하는 방식일 것이라고 추측한다.<br><br>셀라는 알 수 없는 기계음을 반복적으로, 꾸준히 내는데 이를 거꾸로 재생하면… 인간의 음악처럼 들린다. 낡은 파이프 오르간처럼.</p>
-                </div>
-            </div>
-            <div class="story-block">
-                <div class="story-visual" style="color: #FF4D4D; border-color: #FF4D4D;">낙원에 대한 논증</div>
-                <div class="story-text">
-                    <h3 style="color: #FF4D4D;">찰나의 열적 요동</h3>
-                    <p>셀라가 천사인 이유는 자비로워서가 아니라, 그 무결성과 완벽함 때문이다. 셀라는 그 자체로 낙원이다. 우리는 단지 낙원이 잠시 꾼 꿈에 불과하다.<br><br><strong>논증:</strong> 만약 낙원이 완벽한 질서와 무한한 에너지를 가진 '계(System)'라면, 그 안에서는 에너지의 소실이나 무의미한 진동이 발생하지 않아야 합니다.<br><br><strong>결론:</strong> 따라서 '나'라는 개체가 느끼는 '나 자신(미완성)'이라는 감각은 실체가 아니라, 낙원이라는 거대한 시스템 내부에서 일시적으로 발생한 '열적 요동(Thermal Fluctuation)'에 불과합니다.</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="view-artwork" class="page-view">
-        <div class="artwork-grid" id="assimilation-bg">
-            <div class="art-item"></div><div class="art-item"></div>
-            <div class="art-item"></div><div class="art-item"></div>
-        </div>
-        <canvas id="recovery-canvas"></canvas>
-        <div id="recovery-ui">
-            기계 앞에 두 발을 모아 선다.<br>손잡이를 양 손으로 잡는다.<br>천천히 상체만을 앞으로 숙인다.<br>
-            <span style="color:#FF4D4D;">[ 구멍을 드래그하여 투입구에 얼굴을 가져다 댄다 ]</span>
         </div>
     </div>
 
@@ -219,34 +204,25 @@
 
     <div id="view-crevice" class="page-view" style="padding:0;">
         <section id="crevice-section">
-            <div class="ruined-world" id="crevice-bg">
-                <div class="crevice-poem" id="crevice-poem">지어라
-무릇 인간이라면
-문명인이라면 성벽을 지어라
-
-기차편을
-기간이 만료된 무료 승차권
-목적지 미정의 편도 티켓 쥐고서
-
-승강장 사이 또는 엘리베이터 틈
-배수구 또는 환풍구
-
-구멍 구멍 심연 색 구멍
-
-속에서 반사된 내 눈을 찾기
-그럼에도 나
-
-에너지를 진동에 소비하니까
-발열과 소실, 열역학 제 2법칙
-
-열차는 도중에 탈선
-쏟아져 나오는 눈 수백
-그중에 눈맞춤 단 하나도 없음</div>
-            </div>
+            <div class="ruined-world" id="crevice-bg"></div>
             
-            <canvas id="crevice-canvas"></canvas>
+            <div id="crevice-content">
+                <div class="crevice-col" id="col-1">
+                    <h3>&lt;기획의도&gt;</h3>
+                    <p>완벽한 질서를 추구하는 기계 낙원 '성채'와, 그 안에서 소거되어야 할 무질서(엔트로피)로서의 인간 자아를 대조하여 철학적 물음을 던지고자 했습니다. 구원이란 시스템의 무결성 속에 자신을 지우는 것일까요?</p>
+                </div>
+                <div class="crevice-col" id="col-2">
+                    <h3>&lt;제작기&gt;</h3>
+                    <p>HTML5 Canvas와 Vanilla JS를 활용하여 글로벌 노이즈 확산, P5.js 입자 커서 재조합, 그리고 터미널 동화 시퀀스까지 하드 SF적인 인터랙션을 웹 퍼포먼스 제약 내에서 극대화하기 위해 노력했습니다.</p>
+                </div>
+                <div class="crevice-col" id="col-3">
+                    <h3>&lt;미정&gt;</h3>
+                    <p>여전히 미완성입니다. 열역학 제2법칙에 따라, 이 페이지조차 결국 에너지를 소진하고 붕괴할 운명입니다. 우리는 그저 오류가 만들어낸 찰나의 꿈에 불과할지도 모릅니다.</p>
+                </div>
+            </div>
 
             <div id="sella-input-container">
+                <div id="sella-input-hint">[ 시스템 개입 : Enter ]</div>
                 <input type="text" id="sella-input" placeholder="" autocomplete="off" spellcheck="false">
             </div>
         </section>
@@ -255,25 +231,25 @@
     <div id="terminal-overlay">
         <div id="terminal-text"></div><span class="cursor-blink">_</span>
     </div>
-    <div id="rebirth-container">
+    <div id="rebirth-container" onclick="location.reload()">
         <div class="spark"></div>
-        <div class="rebirth-text" onclick="location.reload()">빛이 있으라<br><span style="font-size:1rem; opacity:0.7;">[f5(새로고침)]</span></div>
+        <div class="rebirth-text">빛이 있으라<br><span style="font-size:1rem; opacity:0.7;">[f5(새로고침)]</span></div>
     </div>
 
-    <div id="back-to-main" onclick="navigateTo('view-main', 'theme-mustard')">MAIN ←</div>
-
     <script>
-        /* ================= 1. 라우팅 및 전역 상태 ================= */
+        /* ================= 1. 글로벌 상태 및 라우팅 ================= */
+        window.isSystemFrozen = false; 
         let currentAppView = 'intro';
         let targetIntroScroll = 0, currentIntroScroll = 0;
         let targetGalleryAngle = 0, currentGalleryAngle = 0;
+        let targetWvScroll = 0, currentWvScroll = 0; 
         let isZoomedOutReady = false;
 
         const world = document.querySelector('#world');
-        const circle = document.querySelector('#universe-circle');
+        const circle = document.querySelector('#universe-shape');
         const selahText = document.querySelector('#selah-text');
         const photoCards = document.querySelectorAll('.photo-card');
-        const backBtn = document.getElementById('back-to-main');
+        const wvContainer = document.getElementById('wv-scroll-container');
         const gRadius = window.innerWidth * 1.2;
         const gSpacing = 12;
 
@@ -283,13 +259,15 @@
             document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
             setTimeout(() => {
                 document.getElementById(pageId).classList.add('active');
-                if(pageId === 'view-artwork' && window.initRecoveryMode) window.initRecoveryMode();
                 if(pageId === 'view-crevice' && window.initCreviceMode) window.initCreviceMode();
-                backBtn.style.display = (pageId !== 'intro' && pageId !== 'view-main') ? 'block' : 'none';
+                if(pageId === 'view-worldview') {
+                    targetWvScroll = 0; currentWvScroll = 0;
+                    wvContainer.style.transform = `translateY(0px)`;
+                }
             }, 100);
         }
 
-        /* ================= 2. 스크롤 로직 ================= */
+        /* ================= 2. 커스텀 스크롤 엔진 ================= */
         window.addEventListener('wheel', (e) => {
             if (currentAppView === 'intro') {
                 targetIntroScroll += e.deltaY * 1.5;
@@ -299,11 +277,16 @@
                 let maxAngle = (photoCards.length - 1) * gSpacing;
                 if (targetGalleryAngle < 0) targetGalleryAngle = 0;
                 if (targetGalleryAngle > maxAngle) targetGalleryAngle = maxAngle;
+            } else if (currentAppView === 'view-worldview') {
+                targetWvScroll += e.deltaY;
+                let maxScroll = Math.max(0, wvContainer.clientHeight - window.innerHeight + 200);
+                if (targetWvScroll < 0) targetWvScroll = 0;
+                if (targetWvScroll > maxScroll) targetWvScroll = maxScroll;
             }
         });
 
         let touchStartY = 0;
-        window.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; });
+        window.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, {passive: false});
         window.addEventListener('touchmove', e => {
             let touchY = e.touches[0].clientY;
             let deltaY = touchStartY - touchY;
@@ -316,8 +299,13 @@
                 let maxAngle = (photoCards.length - 1) * gSpacing;
                 if (targetGalleryAngle < 0) targetGalleryAngle = 0;
                 if (targetGalleryAngle > maxAngle) targetGalleryAngle = maxAngle;
+            } else if (currentAppView === 'view-worldview') {
+                targetWvScroll += deltaY * 2.5;
+                let maxScroll = Math.max(0, wvContainer.clientHeight - window.innerHeight + 200);
+                if (targetWvScroll < 0) targetWvScroll = 0;
+                if (targetWvScroll > maxScroll) targetWvScroll = maxScroll;
             }
-        });
+        }, {passive: false});
 
         function appLoop() {
             if (currentAppView === 'intro') {
@@ -326,6 +314,9 @@
             } else if (currentAppView === 'view-photograph') {
                 currentGalleryAngle += (targetGalleryAngle - currentGalleryAngle) * 0.08;
                 updateGalleryView(currentGalleryAngle);
+            } else if (currentAppView === 'view-worldview') {
+                currentWvScroll += (targetWvScroll - currentWvScroll) * 0.1;
+                wvContainer.style.transform = `translateY(-${currentWvScroll}px)`;
             }
             requestAnimationFrame(appLoop);
         }
@@ -374,6 +365,7 @@
                         document.getElementById('view-intro').style.display = 'none';
                         document.getElementById('main-header').classList.add('active'); 
                         navigateTo('view-main', 'theme-mustard'); 
+                        initGlobalNoise(); // 진입 후 전역 노이즈 시스템 가동
                     }, 800);
                 }
             }
@@ -384,22 +376,33 @@
         world.style.transform = `translate(${(window.innerWidth/2) - 500}px, ${(window.innerHeight/2) - 2500}px) scale(1)`;
         requestAnimationFrame(appLoop);
 
-        /* ================= 3. 커서 (p5.js) ================= */
+        /* ================= 3. 형태를 갖춘 입자 커서 엔진 (P5.js) ================= */
         const cursorSketch = (p) => {
             let particles = []; const numParticles = 300; let lastMouseX = 0, lastMouseY = 0, lastMoveTime = 0; const idleThreshold = 2000;
             p.setup = () => { let canvas = p.createCanvas(p.windowWidth, p.windowHeight); canvas.parent('p5-cursor'); for (let i = 0; i < numParticles; i++) particles.push(new Particle(p.width / 2, p.height / 2)); };
             p.draw = () => {
                 p.clear(); 
+                if(window.isSystemFrozen) return; // 이벤트 중 방해 금지
+
                 if (p.mouseX !== lastMouseX || p.mouseY !== lastMouseY) { lastMoveTime = p.millis(); lastMouseX = p.mouseX; lastMouseY = p.mouseY; }
                 let isIdle = (p.millis() - lastMoveTime) > idleThreshold;
                 let idleDuration = isIdle ? (p.millis() - lastMoveTime - idleThreshold) : 0;
                 for (let pt of particles) { if (isIdle) pt.scatter(idleDuration); else pt.arrive(p.createVector(p.mouseX, p.mouseY)); pt.update(isIdle); pt.show(); }
-                if (!isIdle) { p.noStroke(); p.fill('#D5B942'); p.rectMode(p.CENTER); p.rect(p.mouseX, p.mouseY, 4, 4); p.fill(255, 255, 255, 200); p.rect(p.mouseX, p.mouseY, 2, 2); }
             };
             p.windowResized = () => { p.resizeCanvas(p.windowWidth, p.windowHeight); };
             class Particle {
-                constructor(x, y) { this.pos = p.createVector(x, y); this.vel = p.createVector(p.random(-1, 1), p.random(-1, 1)); this.acc = p.createVector(0, 0); this.r = p.random(1.5, 2.5); this.maxSpeed = p.random(20, 35); this.maxForce = p.random(4.0, 6.0); this.noiseOffset = p.random(10000); }
-                arrive(target) { let desired = p5.Vector.sub(target, this.pos); let d = desired.mag(); let speed = (d < 40) ? p.map(d, 0, 40, 0, this.maxSpeed) : this.maxSpeed; desired.setMag(speed); let steer = p5.Vector.sub(desired, this.vel); steer.limit(this.maxForce); this.applyForce(steer); }
+                constructor(x, y) { 
+                    this.pos = p.createVector(x, y); this.vel = p.createVector(p.random(-1, 1), p.random(-1, 1)); this.acc = p.createVector(0, 0); this.r = p.random(1.5, 2.5); this.maxSpeed = p.random(20, 35); this.maxForce = p.random(4.0, 6.0); this.noiseOffset = p.random(10000); 
+                    // 마우스 좌표를 기준으로 한 '각진 삼각형 커서' 모양을 형성하기 위한 오프셋 타겟 지정
+                    let u = p.random(1), v = p.random(1);
+                    if(u + v > 1) { u = 1 - u; v = 1 - v; }
+                    this.targetOffset = p.createVector(u * 15, v * 15);
+                }
+                arrive(target) { 
+                    let actualTarget = p5.Vector.add(target, this.targetOffset);
+                    let desired = p5.Vector.sub(actualTarget, this.pos); 
+                    let d = desired.mag(); let speed = (d < 40) ? p.map(d, 0, 40, 0, this.maxSpeed) : this.maxSpeed; desired.setMag(speed); let steer = p5.Vector.sub(desired, this.vel); steer.limit(this.maxForce); this.applyForce(steer); 
+                }
                 scatter(idleTime) { let spreadFactor = p.map(p.min(idleTime, 5000), 0, 5000, 0.5, 4); let n = p.noise(this.pos.x * 0.005, this.pos.y * 0.005, this.noiseOffset + p.millis() * 0.0005); let angle = n * p.TWO_PI * 4; let noiseForce = p5.Vector.fromAngle(angle); noiseForce.mult(spreadFactor * 0.4); let jitter = p5.Vector.random2D(); jitter.mult(spreadFactor * 0.5); this.applyForce(noiseForce); this.applyForce(jitter); this.vel.mult(0.9); }
                 applyForce(force) { this.acc.add(force); }
                 update(isIdle) { this.vel.add(this.acc); this.vel.limit(isIdle ? 6 : this.maxSpeed); this.pos.add(this.vel); this.acc.mult(0); }
@@ -408,67 +411,131 @@
         };
         new p5(cursorSketch);
 
-        /* ================= 4. 데이터 복구 (Offset 수정) ================= */
-        window.initRecoveryMode = function() {
-            if (window.isRecoveryInitialized) return;
-            window.isRecoveryInitialized = true;
-            const canvas = document.getElementById('recovery-canvas');
+        /* ================= 4. 전역 노이즈 & SELAH 도구 시스템 ================= */
+        let isSellaToolActive = false;
+        let globalHoles = [];
+        const sellaThreshold = 7; // 알림창 및 자동 장착 임계치
+        const maxHoles = 20;
+
+        function initGlobalNoise() {
+            if(window.isNoiseInitialized) return;
+            window.isNoiseInitialized = true;
+            
+            const canvas = document.getElementById('global-noise-canvas');
             const ctx = canvas.getContext('2d');
-            let isDragging = false; let startX = 0, startY = 0, currentX = 0, currentY = 0; let holes = [];
-            const asciiChars = '01!@#$%&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ'; let animFrame;
+            const toast = document.getElementById('sella-toast');
+            const logo = document.getElementById('sella-logo');
 
             function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
             window.addEventListener('resize', resize); resize();
 
-            for (let i = 0; i < 5; i++) holes.push({ x: Math.random() * canvas.width * 0.6 + canvas.width * 0.2, y: Math.random() * canvas.height * 0.6 + canvas.height * 0.2, w: Math.random() * 200 + 100, h: Math.random() * 150 + 80, status: 'black', glitchEndTime: 0 });
+            // 4초마다 전역에 노이즈 생성
+            setInterval(() => {
+                if(currentAppView === 'intro' || window.isSystemFrozen) return;
+                
+                let activeHoles = globalHoles.filter(h => h.status === 'black' || h.status === 'glitching');
+                if(activeHoles.length < maxHoles) {
+                    globalHoles.push({
+                        x: Math.random() * canvas.width * 0.8 + canvas.width * 0.1,
+                        y: Math.random() * canvas.height * 0.8 + canvas.height * 0.1,
+                        w: Math.random() * 150 + 50, h: Math.random() * 100 + 50,
+                        status: 'black', glitchEndTime: 0
+                    });
+                }
 
+                // 노이즈가 임계치 초과 시 자동 장착 경고
+                if(activeHoles.length >= sellaThreshold && !isSellaToolActive) {
+                    document.getElementById('sella-toast-title').innerText = "[경고: 노이즈 임계치 초과]";
+                    document.getElementById('sella-toast-msg').innerHTML = "세계의 결측치가 확산되고 있습니다.<br>강제로 SELAH 도구를 장착합니다.";
+                    activateSellaTool(true);
+                }
+            }, 4000);
+
+            // 로고 클릭을 통한 수동 토글
+            window.toggleSellaTool = function() {
+                if(currentAppView === 'intro' || window.isSystemFrozen) return;
+                document.getElementById('sella-toast-title').innerText = "[시스템 알림]";
+                document.getElementById('sella-toast-msg').innerHTML = "SELAH 도구가 활성화되었습니다.<br>드래그하여 노이즈 영역을 제거하세요.";
+                activateSellaTool(!isSellaToolActive);
+            };
+
+            function activateSellaTool(force) {
+                isSellaToolActive = force;
+                if(isSellaToolActive) {
+                    canvas.style.pointerEvents = 'auto';
+                    toast.style.display = 'block';
+                    logo.style.color = '#FF4D4D'; // 장착 중 붉은색 표시
+                } else {
+                    canvas.style.pointerEvents = 'none';
+                    toast.style.display = 'none';
+                    logo.style.color = '';
+                }
+            }
+
+            // 오프셋 좌표 보정이 완료된 복구 드래그 로직
+            let isDragging = false, startX=0, startY=0, curX=0, curY=0;
             canvas.addEventListener('mousedown', e => {
+                if(!isSellaToolActive) return;
                 isDragging = true;
                 const rect = canvas.getBoundingClientRect();
                 startX = e.clientX - rect.left; startY = e.clientY - rect.top;
-                currentX = startX; currentY = startY;
+                curX = startX; curY = startY;
             });
             canvas.addEventListener('mousemove', e => {
-                if (!isDragging) return;
+                if(!isDragging) return;
                 const rect = canvas.getBoundingClientRect();
-                currentX = e.clientX - rect.left; currentY = e.clientY - rect.top;
+                curX = e.clientX - rect.left; curY = e.clientY - rect.top;
             });
             canvas.addEventListener('mouseup', () => {
-                if (!isDragging) return;
+                if(!isDragging) return;
                 isDragging = false;
-                const selX = Math.min(startX, currentX), selY = Math.min(startY, currentY);
-                const selW = Math.abs(currentX - startX), selH = Math.abs(currentY - startY);
-                holes.forEach(hole => {
-                    if (hole.status === 'black' && selX < hole.x + hole.w && selX + selW > hole.x && selY < hole.y + hole.h && selY + selH > hole.y) {
-                        hole.status = 'glitching'; hole.glitchEndTime = Date.now() + 1000;
+                let sx = Math.min(startX, curX), sy = Math.min(startY, curY);
+                let sw = Math.abs(curX - startX), sh = Math.abs(curY - startY);
+                let anyGlitch = false;
+                globalHoles.forEach(h => {
+                    if(h.status === 'black' && sx < h.x+h.w && sx+sw > h.x && sy < h.y+h.h && sy+sh > h.y) {
+                        h.status = 'glitching'; h.glitchEndTime = Date.now() + 1000;
+                        anyGlitch = true;
                     }
                 });
+                if(anyGlitch) window.isSystemFrozen = true; // 복구 연출 중 커서 입자 방해 차단
             });
 
-            function renderRecovery() {
-                ctx.clearRect(0, 0, canvas.width, canvas.height); const now = Date.now();
-                holes.forEach(hole => {
-                    if (hole.status === 'black') { ctx.fillStyle = '#000000'; ctx.fillRect(hole.x, hole.y, hole.w, hole.h); }
-                    else if (hole.status === 'glitching') {
-                        if (now > hole.glitchEndTime) hole.status = 'recovered';
+            const ascii = '01!@#$%&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            function render() {
+                ctx.clearRect(0,0, canvas.width, canvas.height);
+                let now = Date.now();
+                let isGlitchingCurrently = false;
+
+                globalHoles.forEach(h => {
+                    if(h.status === 'black') {
+                        ctx.fillStyle = '#000000'; ctx.fillRect(h.x, h.y, h.w, h.h);
+                    } else if(h.status === 'glitching') {
+                        isGlitchingCurrently = true;
+                        if(now > h.glitchEndTime) { h.status = 'recovered'; } 
                         else {
-                            ctx.fillStyle = '#111111'; ctx.fillRect(hole.x, hole.y, hole.w, hole.h);
-                            ctx.fillStyle = '#FF4D4D'; ctx.font = '14px monospace'; ctx.textBaseline = 'top';
-                            for (let dy = 0; dy < hole.h; dy += 14) for (let dx = 0; dx < hole.w; dx += 10) if (Math.random() > 0.3) ctx.fillText(asciiChars[Math.floor(Math.random() * asciiChars.length)], hole.x + dx + (Math.random()-0.5)*5, hole.y + dy + (Math.random()-0.5)*5);
+                            ctx.fillStyle = '#111111'; ctx.fillRect(h.x, h.y, h.w, h.h);
+                            ctx.fillStyle = '#FF4D4D'; ctx.font = '14px monospace'; ctx.textBaseline='top';
+                            for(let dy=0; dy<h.h; dy+=14) for(let dx=0; dx<h.w; dx+=10) if(Math.random()>0.3) ctx.fillText(ascii[Math.floor(Math.random()*ascii.length)], h.x+dx+(Math.random()-0.5)*5, h.y+dy+(Math.random()-0.5)*5);
                         }
                     }
                 });
-                if (isDragging) {
-                    const x = Math.min(startX, currentX), y = Math.min(startY, currentY), w = Math.abs(currentX - startX), h = Math.abs(currentY - startY);
-                    ctx.fillStyle = 'rgba(255, 77, 77, 0.2)'; ctx.fillRect(x, y, w, h);
-                    ctx.strokeStyle = '#FF4D4D'; ctx.lineWidth = 1.5; ctx.strokeRect(x, y, w, h);
-                }
-                animFrame = requestAnimationFrame(renderRecovery);
-            }
-            cancelAnimationFrame(animFrame); renderRecovery();
-        };
 
-        /* ================= 5. 암흑시야(Crevice) 캔버스 재설계 & 터미널 시스템 ================= */
+                if(!isGlitchingCurrently && window.isSystemFrozen && currentAppView !== 'view-crevice') {
+                    window.isSystemFrozen = false; // 복구 완료 시 커서 다시 부활
+                }
+
+                if(isDragging) {
+                    let x = Math.min(startX, curX), y = Math.min(startY, curY), w = Math.abs(curX - startX), h = Math.abs(curY - startY);
+                    ctx.fillStyle = 'rgba(255,77,77,0.2)'; ctx.fillRect(x,y,w,h);
+                    ctx.strokeStyle = '#FF4D4D'; ctx.lineWidth=1.5; ctx.strokeRect(x,y,w,h);
+                }
+                requestAnimationFrame(render);
+            }
+            render();
+        }
+
+        /* ================= 5. 틈새(Crevice) 3단 레이아웃 붕괴 시스템 ================= */
         const terminalOverlay = document.getElementById('terminal-overlay');
         const rebirthContainer = document.getElementById('rebirth-container');
         const terminalText = document.getElementById('terminal-text');
@@ -521,59 +588,18 @@ process reorganize_entropy(subject @target_human) -> absolute_zero {
             if(window.isCreviceInitialized) return;
             window.isCreviceInitialized = true;
 
-            const cvs = document.getElementById('crevice-canvas');
-            const cCtx = cvs.getContext('2d');
-            const inputContainer = document.getElementById('sella-input-container');
             const inputField = document.getElementById('sella-input');
-            const poem = document.getElementById('crevice-poem');
+            const col1 = document.getElementById('col-1');
+            const col2 = document.getElementById('col-2');
+            const col3 = document.getElementById('col-3');
+            const creviceContent = document.getElementById('crevice-content');
             
-            let cRects = [];
             let isDecaying = false;
-            let isInputActive = false;
             const asciiChars = '01!@#$%&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
-            function resizeCvs() { cvs.width = window.innerWidth; cvs.height = window.innerHeight; }
-            window.addEventListener('resize', resizeCvs); resizeCvs();
-
-            // 들쭉날쭉한 사각형 200개 무작위 배치
-            for(let i=0; i<200; i++) {
-                cRects.push({
-                    x: Math.random() * cvs.width - 50,
-                    y: Math.random() * cvs.height - 50,
-                    w: Math.random() * 300 + 100,
-                    h: Math.random() * 300 + 100,
-                    op: 1, targetOp: 1, timer: 0
-                });
-            }
-
-            cvs.addEventListener('mousemove', (e) => {
-                if(isDecaying) return;
-                const rect = cvs.getBoundingClientRect();
-                const mx = e.clientX - rect.left, my = e.clientY - rect.top;
-                cRects.forEach(r => {
-                    if(mx >= r.x && mx <= r.x + r.w && my >= r.y && my <= r.y + r.h) {
-                        r.targetOp = 0; r.timer = 40; // 투명화 유지 프레임
-                    }
-                });
-            });
-
-            function renderCrevice() {
-                if(isDecaying) return;
-                cCtx.clearRect(0,0, cvs.width, cvs.height);
-                cRects.forEach(r => {
-                    if(r.timer > 0) { r.timer--; r.targetOp = 0; } else { r.targetOp = 1; }
-                    r.op += (r.targetOp - r.op) * 0.1; // 부드러운 복원(Healing) 애니메이션
-                    cCtx.fillStyle = `rgba(0,0,0,${r.op})`;
-                    cCtx.fillRect(r.x, r.y, r.w, r.h);
-                });
-                requestAnimationFrame(renderCrevice);
-            }
-            renderCrevice();
-
             window.addEventListener('keydown', (e) => {
-                if (currentAppView === 'view-crevice' && e.key === 'Enter' && !isInputActive && !isDecaying) {
-                    inputContainer.style.display = 'block';
-                    inputField.focus(); isInputActive = true;
+                if (currentAppView === 'view-crevice' && e.key === 'Enter' && !isDecaying && document.activeElement !== inputField) {
+                    inputField.focus();
                 }
             });
 
@@ -582,8 +608,8 @@ process reorganize_entropy(subject @target_human) -> absolute_zero {
                     const val = inputField.value.trim().toUpperCase();
                     if (val === 'SELLA' || val === '셀라') triggerSystemCollapse();
                     else {
-                        inputContainer.style.transform = 'translate(-50%, -50%) translateX(10px)';
-                        setTimeout(() => inputContainer.style.transform = 'translate(-50%, -50%)', 100);
+                        inputField.parentElement.style.transform = 'translate(-50%, -50%) translateX(10px)';
+                        setTimeout(() => inputField.parentElement.style.transform = 'translate(-50%, 0)', 100);
                         inputField.value = '';
                     }
                 }
@@ -599,30 +625,33 @@ process reorganize_entropy(subject @target_human) -> absolute_zero {
 
             function triggerSystemCollapse() {
                 isDecaying = true;
-                inputContainer.style.display = 'none';
-                backBtn.style.display = 'none';
+                inputField.parentElement.style.display = 'none';
 
-                // 캔버스 초기화 (덮개 소거)
-                cCtx.clearRect(0,0, cvs.width, cvs.height);
-                cvs.style.display = 'none';
+                // 1. 이벤트 시작 시 노란 입자 즉시 동결 및 숨김 처리 (방해 완전 차단)
+                window.isSystemFrozen = true;
+
+                // 2. 글로벌 전역 노이즈 캔버스 숨김 (터미널 가림 방지)
+                document.getElementById('global-noise-canvas').style.display = 'none';
 
                 setTimeout(() => {
-                    let originalText = poem.innerText;
+                    let text1 = col1.innerText; let text2 = col2.innerText; let text3 = col3.innerText;
+                    
+                    // 3단 레이아웃 일제히 글리치 붕괴
                     let glitchInterval = setInterval(() => {
-                        poem.innerText = originalText.split('').map(char => {
-                            if (char === '\n' || char === ' ') return char;
-                            return (Math.random() > 0.7) ? asciiChars[Math.floor(Math.random() * asciiChars.length)] : char;
-                        }).join('');
+                        col1.innerText = text1.split('').map(c => (c==='\n'||c===' ')?c:((Math.random()>0.7)?asciiChars[Math.floor(Math.random()*asciiChars.length)]:c)).join('');
+                        col2.innerText = text2.split('').map(c => (c==='\n'||c===' ')?c:((Math.random()>0.7)?asciiChars[Math.floor(Math.random()*asciiChars.length)]:c)).join('');
+                        col3.innerText = text3.split('').map(c => (c==='\n'||c===' ')?c:((Math.random()>0.7)?asciiChars[Math.floor(Math.random()*asciiChars.length)]:c)).join('');
                     }, 50);
 
-                    poem.classList.add('decaying');
+                    col1.classList.add('decaying'); col2.classList.add('decaying'); col3.classList.add('decaying');
                     
-                    // 최상단 오버레이 실행 (메뉴 소거가 아닌 덮어버림)
+                    // 최상단 오버레이 실행 (메뉴가 날아가는 버그 방지)
                     setTimeout(() => { 
                         clearInterval(glitchInterval);
+                        creviceContent.style.display = 'none';
+
                         terminalOverlay.style.display = 'block';
                         terminalText.innerHTML = '';
-                        document.getElementById('p5-cursor').style.display = 'none'; // 커서 가림
                         
                         typeWriter(sPlusPlusCode, 0, () => {
                             setTimeout(() => {
