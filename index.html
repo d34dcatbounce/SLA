@@ -6,111 +6,130 @@
     <title>SELAH - The Citadel</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
     <style>
-        /* ================= 전역 & 테마 ================= */
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; overflow: hidden; transition: background-color 0.8s ease, color 0.8s ease; cursor: none; background-color: #3C3C5C; }
-        body.theme-intro { background-color: #3C3C5C; color: #ffffff; }
-        body.theme-mustard { background-color: #D5B942; color: #3C3C5C; }
-        body.theme-charcoal { background-color: #3C3C5C; color: #ffffff; }
-        body.theme-black { background-color: #000000; color: #FF4D4D; }
-
-        /* 모든 요소에서 둥근 모서리 강제 제거 (각진 도형 톤앤매너) */
-        * { border-radius: 0 !important; }
+        /* ================= 전역 & 테마 (옵시디언 블랙 베이스) ================= */
+        * { border-radius: 0 !important; box-sizing: border-box; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; overflow: hidden; transition: background-color 0.8s ease, color 0.8s ease; cursor: none; background-color: #121212; }
+        
+        /* 테마별 팔레트 */
+        body.theme-intro { background-color: #121212; color: #ffffff; }
+        body.theme-mustard { background-color: #D5B942; color: #121212; }
+        body.theme-olive { background-color: #2A2615; color: #ffffff; }
+        body.theme-ash { background-color: #1B1914; color: #ffffff; }
+        body.theme-obsidian { background-color: #121212; color: #FF4D4D; }
 
         #p5-cursor, #p5-cursor canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none !important; z-index: 10000; transition: opacity 0.5s; }
 
-        #main-header { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 80px; box-sizing: border-box; justify-content: space-between; align-items: center; padding: 0 4vw; z-index: 9999; transition: opacity 0.5s ease; opacity: 0; pointer-events: none; }
+        /* 글로벌 헤더 (GNB) */
+        #main-header { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 80px; justify-content: space-between; align-items: center; padding: 0 4vw; z-index: 9900; transition: opacity 0.5s ease; opacity: 0; pointer-events: none; }
         #main-header.active { display: flex; opacity: 1; pointer-events: auto; }
-        .logo { font-size: 2rem; font-weight: 800; cursor: pointer; letter-spacing: -1px; transition: color 0.3s; }
+        .logo { font-size: 2rem; font-weight: 900; cursor: none; letter-spacing: -1px; transition: color 0.3s, text-shadow 0.3s; }
+        .logo:hover { text-shadow: 2px 2px 0px rgba(255, 77, 77, 0.5); }
         .gnb ul { list-style: none; display: flex; gap: 3vw; margin: 0; padding: 0; }
-        .gnb a { text-decoration: none; font-size: 1.1rem; font-weight: 600; cursor: pointer; position: relative; }
+        .gnb a { text-decoration: none; font-size: 1.1rem; font-weight: 700; cursor: none; position: relative; transition: color 0.3s; }
         .gnb a::after { content: ''; position: absolute; width: 0; height: 2px; bottom: -4px; left: 0; transition: width 0.3s ease; }
         .gnb a:hover::after { width: 100%; }
 
-        body.theme-mustard #main-header { border-bottom: 2px solid #3C3C5C; color: #3C3C5C; }
-        body.theme-mustard .gnb a { color: #3C3C5C; } body.theme-mustard .gnb a::after { background-color: #3C3C5C; }
-        body.theme-charcoal #main-header { border-bottom: 2px solid #D5B942; color: #D5B942; }
-        body.theme-charcoal .gnb a { color: #D5B942; } body.theme-charcoal .gnb a::after { background-color: #D5B942; }
-        body.theme-black #main-header { border-bottom: 2px solid #FF4D4D; color: #FF4D4D; }
-        body.theme-black .gnb a { color: #FF4D4D; } body.theme-black .gnb a::after { background-color: #FF4D4D; }
+        /* 테마별 헤더 색상 매핑 */
+        body.theme-mustard #main-header { border-bottom: 2px solid #121212; color: #121212; }
+        body.theme-mustard .gnb a { color: #121212; } body.theme-mustard .gnb a::after { background-color: #121212; }
+        body.theme-olive #main-header { border-bottom: 2px solid #D5B942; color: #D5B942; }
+        body.theme-olive .gnb a { color: #D5B942; } body.theme-olive .gnb a::after { background-color: #D5B942; }
+        body.theme-ash #main-header { border-bottom: 2px solid #D5B942; color: #D5B942; }
+        body.theme-ash .gnb a { color: #D5B942; } body.theme-ash .gnb a::after { background-color: #D5B942; }
+        body.theme-obsidian #main-header { border-bottom: 2px solid #FF4D4D; color: #FF4D4D; }
+        body.theme-obsidian .gnb a { color: #FF4D4D; } body.theme-obsidian .gnb a::after { background-color: #FF4D4D; }
 
-        .page-view { display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; padding-top: 100px; padding-bottom: 100px; box-sizing: border-box; overflow: hidden; opacity: 0; transition: opacity 0.5s ease; z-index: 10; pointer-events: auto; }
+        .page-view { display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; padding-top: 100px; padding-bottom: 100px; overflow: hidden; opacity: 0; transition: opacity 0.5s ease; z-index: 10; pointer-events: auto; }
         .page-view.active { display: block; opacity: 1; }
 
-        /* 글로벌 전역 노이즈 캔버스 & 알림창 */
+        /* 전역 노이즈 복구 & 토스트 시스템 */
         #global-noise-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9000; pointer-events: none; }
-        #sella-toast { display: none; position: fixed; top: 100px; right: 4vw; background: rgba(0,0,0,0.85); border: 2px solid #FF4D4D; color: #fff; padding: 25px; z-index: 9998; box-shadow: 10px 10px 0px rgba(255, 77, 77, 0.3); pointer-events: none; max-width: 350px; }
+        #sella-toast { display: none; position: fixed; top: 100px; right: 4vw; background: #121212; border: 2px solid #FF4D4D; color: #fff; padding: 25px; z-index: 9998; box-shadow: 8px 8px 0px rgba(255, 77, 77, 0.4); pointer-events: none; max-width: 350px; }
         .toast-title { color: #FF4D4D; font-weight: 900; font-size: 1.2rem; margin-bottom: 15px; letter-spacing: 2px; }
         .toast-msg { font-size: 1rem; line-height: 1.6; font-weight: 300; }
 
-        /* 공통 스파크 (각진 형태) */
-        .spark { width: 8px; height: 8px; background: #fff; box-shadow: 0 0 30px 15px rgba(213, 185, 66, 0.9), 0 0 60px 30px rgba(255, 255, 255, 0.6); animation: pulse-spark 2s infinite; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg); }
+        /* 공통 스파크 (각진 다이아몬드 형태) */
+        .spark { width: 10px; height: 10px; background: #fff; box-shadow: 0 0 30px 15px rgba(213, 185, 66, 0.9), 0 0 60px 30px rgba(255, 255, 255, 0.6); animation: pulse-spark 2s infinite; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(45deg); }
         @keyframes pulse-spark { 0%, 100% { transform: translate(-50%, -50%) rotate(45deg) scale(1); opacity: 0.8; } 50% { transform: translate(-50%, -50%) rotate(45deg) scale(1.5); opacity: 1; } }
 
-        /* ================= 1. 인트로 (각진 다이아몬드로 변경) ================= */
+        /* ================= 1. 인트로 ================= */
         #view-intro { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100vh; overflow: hidden; z-index: 1000; padding: 0; transition: opacity 0.8s ease; }
         #world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform-origin: 0 0; will-change: transform; pointer-events: auto; }
-        #universe-shape { position: absolute; top: 732px; left: 732px; width: 3535px; height: 3535px; border: 2px solid rgba(255, 255, 255, 0.05); transform: rotate(45deg); transition: background-color 0.1s; pointer-events: none; }
-        .ready-to-click { cursor: pointer; animation: pulse 2s infinite; pointer-events: auto !important; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(213, 185, 66, 0.7); } 70% { box-shadow: 0 0 0 200px rgba(213, 185, 66, 0); } 100% { box-shadow: 0 0 0 0 rgba(213, 185, 66, 0); } }
-        #timeline-line { position: absolute; top: 2500px; left: 0; width: 5000px; height: 2px; background-color: rgba(255, 255, 255, 0.4); pointer-events: none; }
+        #universe-shape { position: absolute; top: 732px; left: 732px; width: 3535px; height: 3535px; border: 2px solid rgba(255, 255, 255, 0.05); transform: rotate(45deg); transition: border-color 0.1s; pointer-events: none; }
+        .ready-to-click { cursor: none; animation: pulse-border 2s infinite; pointer-events: auto !important; }
+        @keyframes pulse-border { 0% { box-shadow: 0 0 0 0 rgba(213, 185, 66, 0.7); border-color: rgba(213, 185, 66, 1); } 70% { box-shadow: 0 0 0 100px rgba(213, 185, 66, 0); border-color: rgba(213, 185, 66, 0.2); } 100% { box-shadow: 0 0 0 0 rgba(213, 185, 66, 0); border-color: rgba(213, 185, 66, 1); } }
+        #timeline-line { position: absolute; top: 2500px; left: 0; width: 5000px; height: 2px; background-color: rgba(255, 255, 255, 0.2); pointer-events: none; }
         .node { position: absolute; top: 2500px; transform: translate(-50%, -50%); width: 14px; height: 14px; background-color: transparent; pointer-events: none; }
-        .node-label { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); color: #ccc; white-space: nowrap; }
-        .node-dot { width: 14px; height: 14px; background-color: white; position: absolute; top: 0; left: 0; transform: rotate(45deg); }
-        .start-text { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); font-weight: bold; color: #D5B942; letter-spacing: 2px; }
-        #selah-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; letter-spacing: 0.5rem; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 999; }
+        .node-label { position: absolute; top: 30px; left: 50%; transform: translateX(-50%); color: #888; white-space: nowrap; font-weight: 600; letter-spacing: 1px; }
+        .node-dot { width: 12px; height: 12px; background-color: #D5B942; position: absolute; top: 0; left: 0; transform: rotate(45deg); }
+        .start-text { position: absolute; top: -50px; left: 50%; transform: translateX(-50%); font-weight: 900; color: #D5B942; letter-spacing: 2px; }
+        #selah-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 4rem; font-weight: 900; letter-spacing: 0.8rem; color: #121212; text-shadow: -1px -1px 0 #D5B942, 1px -1px 0 #D5B942, -1px 1px 0 #D5B942, 1px 1px 0 #D5B942; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 999; }
 
-        /* ================= 3. 메인 & 4. 세계관 ================= */
-        #view-main .main-content { display: flex; flex-wrap: wrap; height: 100%; padding: 4vw; gap: 4vw; box-sizing: border-box; align-items: center; }
-        .main-visual { flex: 1.5; min-height: 60vh; border: 2px solid #3C3C5C; display: flex; justify-content: center; align-items: center; text-align: center; }
-        .main-text { flex: 1; display: flex; flex-direction: column; justify-content: center; color: #3C3C5C; }
-        .highlight-text { font-size: 2.5rem; font-weight: 300; line-height: 1.5; color: #3C3C5C; }
+        /* ================= 2. 성채 (Main - Mustard) ================= */
+        #view-main .main-content { display: flex; flex-wrap: wrap; height: 100%; padding: 4vw; gap: 4vw; align-items: center; }
+        .main-visual { flex: 1.5; min-height: 60vh; border: 3px solid #121212; display: flex; justify-content: center; align-items: center; text-align: center; position: relative; overflow: hidden; }
+        .main-visual::before { content:''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%; background: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(18,18,18,0.05) 10px, rgba(18,18,18,0.05) 20px); pointer-events: none; }
+        .main-text { flex: 1; display: flex; flex-direction: column; justify-content: center; color: #121212; }
+        .main-text h2 { font-size: 3.5rem; font-weight: 900; margin-bottom: 20px; letter-spacing: -2px; }
+        .highlight-text { font-size: 2.8rem; font-weight: 800; line-height: 1.4; color: #121212; }
+        .main-text p { font-size: 1.15rem; line-height: 1.8; font-weight: 500; }
 
+        /* ================= 3. 관측일지 (Worldview - Olive) ================= */
         #wv-scroll-container { width: 100%; position: absolute; top: 100px; left: 0; will-change: transform; }
-        .angular-bg { position: absolute; top: -20vh; left: -20vw; width: 150vw; height: 80vh; background-color: #D5B942; transform: rotate(-10deg); z-index: -1; pointer-events: none; }
+        .angular-bg { position: absolute; top: -20vh; left: -20vw; width: 150vw; height: 80vh; background-color: #121212; transform: rotate(-5deg); z-index: -1; pointer-events: none; border-bottom: 2px solid #D5B942; }
         .hero-section { position: relative; width: 100%; height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; pointer-events: none; }
-        .hero-title { color: #3C3C5C; font-size: 4rem; z-index: 1; }
+        .hero-title { color: #D5B942; font-size: 5rem; font-weight: 900; z-index: 1; letter-spacing: 5px; text-shadow: 4px 4px 0px #121212; }
         
         .story-container { position: relative; max-width: 1000px; margin: 0 auto; padding: 50px 5vw 200px 5vw; display: flex; flex-direction: column; gap: 15vh; }
         .story-block { display: flex; align-items: center; gap: 50px; opacity: 0; transform: translateY(50px); transition: all 1s ease-out; flex-wrap: wrap; }
         .story-block.visible { opacity: 1; transform: translateY(0); }
         .story-block:nth-child(even) { flex-direction: row-reverse; }
-        .story-visual { flex: 1; min-width: 300px; height: 350px; border: 1px solid #D5B942; display: flex; align-items: center; justify-content: center; color: #D5B942; font-size: 1.2rem; }
+        .story-visual { flex: 1; min-width: 300px; height: 350px; border: 2px solid #D5B942; background: #121212; display: flex; align-items: center; justify-content: center; color: #D5B942; font-size: 1.5rem; font-weight: bold; letter-spacing: 2px; position: relative; }
+        .story-visual::after { content:''; position: absolute; top: 10px; left: 10px; right: -14px; bottom: -14px; border: 1px solid rgba(213, 185, 66, 0.3); z-index: -1; }
         .story-text { flex: 1; min-width: 300px; } 
-        .story-text h3 { color: #D5B942; font-size: 2rem; margin-bottom: 20px; } 
-        .story-text p { font-size: 1.1rem; line-height: 1.8; color: #ffffff; font-weight: 300; }
+        .story-text h3 { color: #D5B942; font-size: 2.2rem; margin-bottom: 20px; font-weight: 800; } 
+        .story-text p { font-size: 1.1rem; line-height: 1.9; color: #dddddd; font-weight: 400; }
 
-        /* ================= 6. 사진첩 ================= */
+        /* ================= 4. 기록보관소 (Photograph - Ash) ================= */
         #view-photograph { padding: 0; }
         #gallery-container { position: relative; width: 100%; height: 100%; pointer-events: none; }
-        .photo-card { position: absolute; width: 320px; height: 450px; background: #2a2a40; border: 2px solid #D5B942; top: 50%; left: 50%; transform-origin: center center; display: flex; align-items: center; justify-content: center; color: #fff; will-change: transform, opacity; }
-        .p-text { padding: 30px; text-align: center; font-size: 1.1rem; line-height: 1.8; font-weight: 300; }
+        .photo-card { position: absolute; width: 340px; height: 480px; background: #121212; border: 2px solid #D5B942; top: 50%; left: 50%; transform-origin: center center; display: flex; align-items: center; justify-content: center; color: #fff; will-change: transform, opacity; box-shadow: 15px 15px 0px rgba(0,0,0,0.5); }
+        .p-text { padding: 40px; text-align: center; font-size: 1.2rem; line-height: 1.8; font-weight: 500; }
 
-        /* ================= 7. 틈새 (Crevice) 3단 레이아웃 ================= */
-        #crevice-section { position: relative; width: 100%; height: 100vh; background-color: #000; overflow: hidden; }
-        .ruined-world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://images.unsplash.com/photo-1518134250266-4f964082878d?q=80&w=1920&auto=format&fit=crop') center/cover; filter: grayscale(80%) contrast(120%) brightness(0.4); z-index: 1; transition: opacity 0.5s; pointer-events: none; }
+        /* ================= 5. 데이터센터 (Crevice - Obsidian & 코즈믹 호러) ================= */
+        #crevice-section { position: relative; width: 100%; height: 100vh; background-color: #121212; overflow: hidden; }
+        .ruined-world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: repeating-linear-gradient(0deg, #121212, #121212 2px, #1a1a1a 2px, #1a1a1a 4px); z-index: 1; pointer-events: none; opacity: 0.5; }
         
-        #crevice-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 3vw; width: 85%; max-width: 1200px; z-index: 2; transition: opacity 0.5s; }
-        .crevice-col { flex: 1; background: rgba(0, 0, 0, 0.7); border: 2px solid #FF4D4D; padding: 2.5vw; color: #ffffff; backdrop-filter: blur(5px); }
-        .crevice-col h3 { color: #FF4D4D; font-size: 1.5rem; margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid rgba(255, 77, 77, 0.3); padding-bottom: 10px; }
-        .crevice-col p { font-size: 1rem; line-height: 1.8; font-weight: 300; margin: 0; }
+        #crevice-content { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; gap: 2vw; width: 90%; max-width: 1400px; z-index: 2; transition: opacity 0.5s; }
+        .crevice-col { flex: 1; background: #121212; border: 2px solid #FF4D4D; padding: 3vw; color: #ffffff; position: relative; transition: all 0.3s; }
+        .crevice-col::before { content:''; position:absolute; top: -6px; left: -6px; width: 20px; height: 20px; border-top: 4px solid #FF4D4D; border-left: 4px solid #FF4D4D; }
+        .crevice-col::after { content:''; position:absolute; bottom: -6px; right: -6px; width: 20px; height: 20px; border-bottom: 4px solid #FF4D4D; border-right: 4px solid #FF4D4D; }
+        .crevice-col h3 { color: #FF4D4D; font-size: 1.6rem; margin-top: 0; margin-bottom: 25px; font-weight: 900; letter-spacing: 1px; }
+        .crevice-col p { font-size: 1.05rem; line-height: 1.9; font-weight: 400; margin: 0; color: #ccc; }
         
-        @media (max-width: 800px) { #crevice-content { flex-direction: column; top: 120px; transform: translateX(-50%); height: 75vh; overflow-y: auto; } }
+        /* 세 번째 기둥 (함정) */
+        #col-3 { cursor: none; transition: background 0.3s, transform 0.3s; }
+        #col-3:hover { background: #1a0505; transform: translateY(-10px); box-shadow: 0 10px 30px rgba(255, 77, 77, 0.2); }
+        
+        @media (max-width: 900px) { #crevice-content { flex-direction: column; top: 120px; transform: translateX(-50%); height: 75vh; overflow-y: auto; gap: 4vw; padding-bottom: 50px; } }
 
-        #sella-input-container { position: absolute; bottom: 50px; left: 50%; transform: translateX(-50%); z-index: 10; pointer-events: auto; text-align: center; }
-        #sella-input-hint { color: #FF4D4D; font-size: 0.9rem; margin-bottom: 10px; letter-spacing: 2px; }
-        #sella-input { background: rgba(255, 255, 255, 0.1); border: 2px solid #FF4D4D; outline: none; padding: 10px 20px; font-size: 1.5rem; text-align: center; color: #FF4D4D; font-family: 'Courier New', monospace; font-weight: bold; width: 200px; transition: background 0.3s; cursor: none; }
-        #sella-input:focus { background: rgba(255, 255, 255, 0.9); color: #000; box-shadow: 0 0 20px rgba(255,77,77,0.5); }
+        /* 눈 증식 캔버스 (이벤트 발동 시 등장) */
+        #eyes-canvas { display: none; position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 9995; pointer-events: none; }
 
-        .decaying { animation: text-decay 0.3s infinite; color: #FF4D4D !important; text-shadow: 3px 0 blue, -3px 0 red !important; border-color: transparent !important; background: transparent !important; }
-        @keyframes text-decay { 0% { transform: translate(0,0) skew(0deg); opacity: 1; } 20% { transform: translate(-3px, 3px) skew(-15deg); opacity: 0.8; } 40% { transform: translate(3px, -3px) skew(15deg); opacity: 1; filter: invert(1); } 60% { transform: translate(-3px, -3px) skew(0deg); opacity: 0.5; filter: invert(0); } 80% { transform: translate(3px, 3px) skew(5deg); opacity: 0.9; } 100% { transform: translate(0,0) skew(0deg); opacity: 1; } }
+        /* 이벤트 시 등장하는 텍스트 인력창 */
+        #sella-input-container { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 9997; pointer-events: auto; text-align: center; }
+        #sella-input { background: #121212; border: 3px solid #FF4D4D; outline: none; padding: 15px 30px; font-size: 2rem; text-align: center; color: #FF4D4D; font-family: 'Courier New', monospace; font-weight: 900; width: 250px; text-transform: uppercase; cursor: none; box-shadow: 0 0 50px rgba(255,77,77,0.8); }
+
+        .decaying { animation: text-decay 0.1s infinite; color: #FF4D4D !important; text-shadow: 4px 0 blue, -4px 0 red !important; border-color: #FF4D4D !important; background: #000 !important; }
+        @keyframes text-decay { 0% { transform: translate(0,0) skew(0deg); opacity: 1; } 20% { transform: translate(-5px, 5px) skew(-20deg); opacity: 0.8; } 40% { transform: translate(5px, -5px) skew(20deg); opacity: 1; filter: invert(1); } 60% { transform: translate(-5px, -5px) skew(0deg); opacity: 0.5; filter: invert(0); } 80% { transform: translate(5px, 5px) skew(10deg); opacity: 0.9; } 100% { transform: translate(0,0) skew(0deg); opacity: 1; } }
 
         /* 화면 전체를 무조건 덮는 시스템 오버레이 (마우스 강제 숨김) */
-        #terminal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #050505; color: #00FF41; font-family: 'Courier New', Courier, monospace; padding: 5vw; box-sizing: border-box; z-index: 99998; overflow-y: hidden; font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap; cursor: none !important; pointer-events: auto; }
-        .cursor-blink { animation: blink 1s step-end infinite; font-weight: bold; }
+        #terminal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background-color: #050505; color: #FF4D4D; font-family: 'Courier New', Courier, monospace; padding: 5vw; z-index: 99998; overflow-y: hidden; font-size: 1.2rem; font-weight:bold; line-height: 1.6; white-space: pre-wrap; cursor: none !important; pointer-events: auto; text-shadow: 0 0 5px rgba(255,77,77,0.5); }
+        .cursor-blink { animation: blink 1s step-end infinite; font-weight: bold; background: #FF4D4D; color: #000; padding: 0 5px; }
         @keyframes blink { 50% { opacity: 0; } }
 
         #rebirth-container { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #000; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 2s ease-in; cursor: none !important; pointer-events: auto; }
-        .rebirth-text { color: #fff; font-size: 1.5rem; text-align: center; cursor: none; letter-spacing: 4px; transition: color 0.3s; line-height: 1.8; margin-top: 60px; pointer-events: auto; }
+        .rebirth-text { color: #fff; font-size: 1.5rem; text-align: center; cursor: none; letter-spacing: 4px; transition: color 0.3s; line-height: 1.8; margin-top: 60px; font-weight: 900; }
         .rebirth-text:hover { color: #D5B942; }
     </style>
 </head>
@@ -124,14 +143,16 @@
         <div class="toast-msg" id="sella-toast-msg">SELAH 도구가 활성화되었습니다.<br>드래그하여 노이즈를 제거하세요.</div>
     </div>
 
+    <canvas id="eyes-canvas"></canvas>
+
     <header id="main-header">
         <div class="logo" id="sella-logo" onclick="toggleSellaTool()">SELAH.</div>
         <nav class="gnb">
             <ul>
-                <li><a onclick="navigateTo('view-main', 'theme-mustard')">Home</a></li>
-                <li><a onclick="navigateTo('view-worldview', 'theme-charcoal')">Worldview</a></li>
-                <li><a onclick="navigateTo('view-photograph', 'theme-charcoal')">Photograph</a></li>
-                <li><a onclick="navigateTo('view-crevice', 'theme-black')">Crevice</a></li>
+                <li><a onclick="navigateTo('view-main', 'theme-mustard')">성채</a></li>
+                <li><a onclick="navigateTo('view-worldview', 'theme-olive')">관측일지</a></li>
+                <li><a onclick="navigateTo('view-photograph', 'theme-ash')">기록보관소</a></li>
+                <li><a onclick="navigateTo('view-crevice', 'theme-obsidian')">데이터센터</a></li>
             </ul>
         </nav>
     </header>
@@ -146,7 +167,7 @@
             <div class="node" style="left:3800px;"><div class="node-dot"></div><div class="node-label">볼츠만 두뇌</div></div>
             <div class="node" style="left:4500px;"><div class="node-dot"></div><div class="node-label">경계면</div></div>
         </div>
-        <div id="selah-text">셀라, 셀라</div>
+        <div id="selah-text">SELAH</div>
     </div>
 
     <div id="view-main" class="page-view">
@@ -213,17 +234,16 @@
                 </div>
                 <div class="crevice-col" id="col-2">
                     <h3>&lt;제작기&gt;</h3>
-                    <p>HTML5 Canvas와 Vanilla JS를 활용하여 글로벌 노이즈 확산, P5.js 입자 커서 재조합, 그리고 터미널 동화 시퀀스까지 하드 SF적인 인터랙션을 웹 퍼포먼스 제약 내에서 극대화하기 위해 노력했습니다.</p>
+                    <p>글로벌 노이즈 확산, P5.js 각진 입자 커서 재조합, 그리고 터미널 동화 시퀀스까지 하드 SF적인 인터랙션을 웹 퍼포먼스 제약 내에서 극대화하기 위해 노력했습니다.</p>
                 </div>
-                <div class="crevice-col" id="col-3">
-                    <h3>&lt;미정&gt;</h3>
-                    <p>여전히 미완성입니다. 열역학 제2법칙에 따라, 이 페이지조차 결국 에너지를 소진하고 붕괴할 운명입니다. 우리는 그저 오류가 만들어낸 찰나의 꿈에 불과할지도 모릅니다.</p>
+                <div class="crevice-col" id="col-3" onclick="triggerCosmicHorror()">
+                    <h3>&lt;렌더링되지 못한 곳&gt;</h3>
+                    <p>접근 권한이 없습니다. 시스템 무결성을 위해 이 영역의 데이터는 소거되었거나 관측을 거부하고 있습니다. 무리한 접근은 열적 요동을 가속화합니다.</p>
                 </div>
             </div>
 
             <div id="sella-input-container">
-                <div id="sella-input-hint">[ 시스템 개입 : Enter ]</div>
-                <input type="text" id="sella-input" placeholder="" autocomplete="off" spellcheck="false">
+                <input type="text" id="sella-input" placeholder="SELLA" autocomplete="off" spellcheck="false">
             </div>
         </section>
     </div>
@@ -233,12 +253,13 @@
     </div>
     <div id="rebirth-container" onclick="location.reload()">
         <div class="spark"></div>
-        <div class="rebirth-text">빛이 있으라<br><span style="font-size:1rem; opacity:0.7;">[f5(새로고침)]</span></div>
+        <div class="rebirth-text">빛이 있으라<br><span style="font-size:1rem; opacity:0.7; font-weight: 300;">[f5(새로고침)]</span></div>
     </div>
 
     <script>
         /* ================= 1. 글로벌 상태 및 라우팅 ================= */
         window.isSystemFrozen = false; 
+        window.currentTheme = 'theme-intro'; // 커서 색상 동기화용
         let currentAppView = 'intro';
         let targetIntroScroll = 0, currentIntroScroll = 0;
         let targetGalleryAngle = 0, currentGalleryAngle = 0;
@@ -254,12 +275,14 @@
         const gSpacing = 12;
 
         window.navigateTo = function(pageId, themeClass) {
+            if(window.isSystemFrozen) return; // 호러 이벤트 중 메뉴 이동 불가
             currentAppView = pageId;
             document.body.className = themeClass;
+            window.currentTheme = themeClass;
+            
             document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active'));
             setTimeout(() => {
                 document.getElementById(pageId).classList.add('active');
-                if(pageId === 'view-crevice' && window.initCreviceMode) window.initCreviceMode();
                 if(pageId === 'view-worldview') {
                     targetWvScroll = 0; currentWvScroll = 0;
                     wvContainer.style.transform = `translateY(0px)`;
@@ -269,6 +292,7 @@
 
         /* ================= 2. 커스텀 스크롤 엔진 ================= */
         window.addEventListener('wheel', (e) => {
+            if(window.isSystemFrozen) return;
             if (currentAppView === 'intro') {
                 targetIntroScroll += e.deltaY * 1.5;
                 if (targetIntroScroll < 0) targetIntroScroll = 0;
@@ -288,6 +312,7 @@
         let touchStartY = 0;
         window.addEventListener('touchstart', e => { touchStartY = e.touches[0].clientY; }, {passive: false});
         window.addEventListener('touchmove', e => {
+            if(window.isSystemFrozen) return;
             let touchY = e.touches[0].clientY;
             let deltaY = touchStartY - touchY;
             touchStartY = touchY;
@@ -328,7 +353,7 @@
                 let progress = scrollValue / slideLimit;
                 let currentX = 500 + (4500 - 500) * progress;
                 world.style.transform = `translate(${(screenW/2) - currentX}px, ${(screenH/2) - 2500}px) scale(1)`;
-                circle.style.backgroundColor = `rgba(213, 185, 66, ${progress})`;
+                circle.style.borderColor = `rgba(213, 185, 66, ${Math.max(0.05, progress)})`;
                 selahText.style.opacity = '0';
                 if(isZoomedOutReady) { isZoomedOutReady = false; circle.classList.remove('ready-to-click'); }
             } else {
@@ -336,7 +361,7 @@
                 let scale = 1 - (zoomProgress * 0.92);
                 let currentX = 4500 + (2500 - 4500) * zoomProgress;
                 world.style.transform = `translate(${(screenW/2) - currentX*scale}px, ${(screenH/2) - 2500*scale}px) scale(${scale})`;
-                circle.style.backgroundColor = `rgba(213, 185, 66, 1)`;
+                circle.style.borderColor = `rgba(213, 185, 66, 1)`;
                 selahText.style.opacity = zoomProgress > 0.8 ? ((zoomProgress - 0.8) * 5).toString() : '0';
                 if (zoomProgress >= 0.98 && !isZoomedOutReady) { isZoomedOutReady = true; circle.classList.add('ready-to-click'); } 
                 else if (zoomProgress < 0.98 && isZoomedOutReady) { isZoomedOutReady = false; circle.classList.remove('ready-to-click'); }
@@ -356,18 +381,15 @@
             });
         }
 
-        world.addEventListener('click', () => {
-            if (currentAppView === 'intro') {
-                let zoomProgress = Math.min(Math.max((currentIntroScroll - 4000) / 3000, 0), 1);
-                if (zoomProgress > 0.8) {
-                    document.getElementById('view-intro').style.opacity = '0'; 
-                    setTimeout(() => {
-                        document.getElementById('view-intro').style.display = 'none';
-                        document.getElementById('main-header').classList.add('active'); 
-                        navigateTo('view-main', 'theme-mustard'); 
-                        initGlobalNoise(); // 진입 후 전역 노이즈 시스템 가동
-                    }, 800);
-                }
+        circle.addEventListener('click', () => {
+            if (currentAppView === 'intro' && isZoomedOutReady) {
+                document.getElementById('view-intro').style.opacity = '0'; 
+                setTimeout(() => {
+                    document.getElementById('view-intro').style.display = 'none';
+                    document.getElementById('main-header').classList.add('active'); 
+                    navigateTo('view-main', 'theme-mustard'); 
+                    initGlobalNoise(); // 전역 노이즈 가동
+                }, 800);
             }
         });
 
@@ -376,45 +398,70 @@
         world.style.transform = `translate(${(window.innerWidth/2) - 500}px, ${(window.innerHeight/2) - 2500}px) scale(1)`;
         requestAnimationFrame(appLoop);
 
-        /* ================= 3. 형태를 갖춘 입자 커서 엔진 (P5.js) ================= */
+        /* ================= 3. 형태를 갖춘 각진 입자 커서 엔진 (P5.js) ================= */
         const cursorSketch = (p) => {
-            let particles = []; const numParticles = 300; let lastMouseX = 0, lastMouseY = 0, lastMoveTime = 0; const idleThreshold = 2000;
+            let particles = []; const numParticles = 250; let lastMouseX = 0, lastMouseY = 0, lastMoveTime = 0; const idleThreshold = 1500;
             p.setup = () => { let canvas = p.createCanvas(p.windowWidth, p.windowHeight); canvas.parent('p5-cursor'); for (let i = 0; i < numParticles; i++) particles.push(new Particle(p.width / 2, p.height / 2)); };
             p.draw = () => {
                 p.clear(); 
-                if(window.isSystemFrozen) return; // 이벤트 중 방해 금지
+                if(window.isSystemFrozen) return; // 호러 이벤트 및 복구 글리치 시 방해 금지
+
+                // 테마에 따른 커서 색상 동적 변경 (머스타드 배경일 때 대비 확보)
+                let cColor = window.currentTheme === 'theme-mustard' ? p.color('#121212') : p.color('#D5B942');
+                let cStroke = window.currentTheme === 'theme-mustard' ? p.color(0, 0, 0, 100) : p.color(213, 185, 66, 100);
 
                 if (p.mouseX !== lastMouseX || p.mouseY !== lastMouseY) { lastMoveTime = p.millis(); lastMouseX = p.mouseX; lastMouseY = p.mouseY; }
                 let isIdle = (p.millis() - lastMoveTime) > idleThreshold;
                 let idleDuration = isIdle ? (p.millis() - lastMoveTime - idleThreshold) : 0;
-                for (let pt of particles) { if (isIdle) pt.scatter(idleDuration); else pt.arrive(p.createVector(p.mouseX, p.mouseY)); pt.update(isIdle); pt.show(); }
+                
+                for (let pt of particles) { 
+                    if (isIdle) pt.scatter(idleDuration); 
+                    else pt.arrive(p.createVector(p.mouseX, p.mouseY)); 
+                    pt.update(isIdle); pt.show(cColor, cStroke); 
+                }
             };
             p.windowResized = () => { p.resizeCanvas(p.windowWidth, p.windowHeight); };
+            
             class Particle {
                 constructor(x, y) { 
-                    this.pos = p.createVector(x, y); this.vel = p.createVector(p.random(-1, 1), p.random(-1, 1)); this.acc = p.createVector(0, 0); this.r = p.random(1.5, 2.5); this.maxSpeed = p.random(20, 35); this.maxForce = p.random(4.0, 6.0); this.noiseOffset = p.random(10000); 
-                    // 마우스 좌표를 기준으로 한 '각진 삼각형 커서' 모양을 형성하기 위한 오프셋 타겟 지정
+                    this.pos = p.createVector(x, y); this.vel = p.createVector(p.random(-1, 1), p.random(-1, 1)); this.acc = p.createVector(0, 0); 
+                    this.r = p.random(2, 4); // 각진 도형의 크기
+                    this.maxSpeed = p.random(25, 40); this.maxForce = p.random(5.0, 8.0); this.noiseOffset = p.random(10000); 
+                    
+                    // 삼각형 커서(포인터) 모양을 만들기 위한 오프셋 타겟 지정
                     let u = p.random(1), v = p.random(1);
                     if(u + v > 1) { u = 1 - u; v = 1 - v; }
-                    this.targetOffset = p.createVector(u * 15, v * 15);
+                    this.targetOffset = p.createVector(u * 18, v * 28 - u * 8); 
                 }
                 arrive(target) { 
                     let actualTarget = p5.Vector.add(target, this.targetOffset);
                     let desired = p5.Vector.sub(actualTarget, this.pos); 
-                    let d = desired.mag(); let speed = (d < 40) ? p.map(d, 0, 40, 0, this.maxSpeed) : this.maxSpeed; desired.setMag(speed); let steer = p5.Vector.sub(desired, this.vel); steer.limit(this.maxForce); this.applyForce(steer); 
+                    let d = desired.mag(); let speed = (d < 50) ? p.map(d, 0, 50, 0, this.maxSpeed) : this.maxSpeed; desired.setMag(speed); 
+                    let steer = p5.Vector.sub(desired, this.vel); steer.limit(this.maxForce); this.applyForce(steer); 
                 }
-                scatter(idleTime) { let spreadFactor = p.map(p.min(idleTime, 5000), 0, 5000, 0.5, 4); let n = p.noise(this.pos.x * 0.005, this.pos.y * 0.005, this.noiseOffset + p.millis() * 0.0005); let angle = n * p.TWO_PI * 4; let noiseForce = p5.Vector.fromAngle(angle); noiseForce.mult(spreadFactor * 0.4); let jitter = p5.Vector.random2D(); jitter.mult(spreadFactor * 0.5); this.applyForce(noiseForce); this.applyForce(jitter); this.vel.mult(0.9); }
+                scatter(idleTime) { 
+                    let spreadFactor = p.map(p.min(idleTime, 5000), 0, 5000, 0.5, 4); 
+                    let n = p.noise(this.pos.x * 0.005, this.pos.y * 0.005, this.noiseOffset + p.millis() * 0.0005); 
+                    let angle = n * p.TWO_PI * 4; let noiseForce = p5.Vector.fromAngle(angle); noiseForce.mult(spreadFactor * 0.5); 
+                    let jitter = p5.Vector.random2D(); jitter.mult(spreadFactor * 0.5); 
+                    this.applyForce(noiseForce); this.applyForce(jitter); this.vel.mult(0.9); 
+                }
                 applyForce(force) { this.acc.add(force); }
-                update(isIdle) { this.vel.add(this.acc); this.vel.limit(isIdle ? 6 : this.maxSpeed); this.pos.add(this.vel); this.acc.mult(0); }
-                show() { p.noStroke(); p.fill(213, 185, 66, 180); p.rectMode(p.CENTER); p.rect(this.pos.x, this.pos.y, this.r, this.r); }
+                update(isIdle) { this.vel.add(this.acc); this.vel.limit(isIdle ? 5 : this.maxSpeed); this.pos.add(this.vel); this.acc.mult(0); }
+                show(cColor, cStroke) { 
+                    p.noStroke(); p.fill(cColor); p.rectMode(p.CENTER); 
+                    // 둥근 입자가 아닌 각진 마름모 형태로 렌더링
+                    p.push(); p.translate(this.pos.x, this.pos.y); p.rotate(p.QUARTER_PI); p.rect(0, 0, this.r, this.r); p.pop(); 
+                }
             }
         };
         new p5(cursorSketch);
 
-        /* ================= 4. 전역 노이즈 & SELAH 도구 시스템 ================= */
+        /* ================= 4. 전역 노이즈 & SELAH 도구 시스템 (자동/수동) ================= */
         let isSellaToolActive = false;
         let globalHoles = [];
-        const sellaThreshold = 7; // 알림창 및 자동 장착 임계치
+        const sellaThreshold = 6; // 자동 장착 임계치
+        const safeThreshold = 2;  // 자동 해제 임계치
         const maxHoles = 20;
 
         function initGlobalNoise() {
@@ -424,12 +471,14 @@
             const canvas = document.getElementById('global-noise-canvas');
             const ctx = canvas.getContext('2d');
             const toast = document.getElementById('sella-toast');
+            const toastTitle = document.getElementById('sella-toast-title');
+            const toastMsg = document.getElementById('sella-toast-msg');
             const logo = document.getElementById('sella-logo');
 
             function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
             window.addEventListener('resize', resize); resize();
 
-            // 4초마다 전역에 노이즈 생성
+            // 3.5초마다 전역에 노이즈 무작위 생성
             setInterval(() => {
                 if(currentAppView === 'intro' || window.isSystemFrozen) return;
                 
@@ -443,19 +492,24 @@
                     });
                 }
 
-                // 노이즈가 임계치 초과 시 자동 장착 경고
+                // 노이즈가 임계치 초과 시 경고창 띄우고 도구 자동 장착
                 if(activeHoles.length >= sellaThreshold && !isSellaToolActive) {
-                    document.getElementById('sella-toast-title').innerText = "[경고: 노이즈 임계치 초과]";
-                    document.getElementById('sella-toast-msg').innerHTML = "세계의 결측치가 확산되고 있습니다.<br>강제로 SELAH 도구를 장착합니다.";
+                    toastTitle.innerText = "[경고: 노이즈 임계치 초과]";
+                    toastTitle.style.color = "#FF4D4D"; toast.style.borderColor = "#FF4D4D";
+                    toastMsg.innerHTML = "결측치가 확산되고 있습니다.<br>강제로 SELAH 도구를 장착합니다.";
                     activateSellaTool(true);
                 }
-            }, 4000);
+            }, 3500);
 
-            // 로고 클릭을 통한 수동 토글
+            // 로고 수동 클릭 토글
             window.toggleSellaTool = function() {
                 if(currentAppView === 'intro' || window.isSystemFrozen) return;
-                document.getElementById('sella-toast-title').innerText = "[시스템 알림]";
-                document.getElementById('sella-toast-msg').innerHTML = "SELAH 도구가 활성화되었습니다.<br>드래그하여 노이즈 영역을 제거하세요.";
+                
+                if(!isSellaToolActive) {
+                    toastTitle.innerText = "[시스템 알림]";
+                    toastTitle.style.color = "#D5B942"; toast.style.borderColor = "#D5B942";
+                    toastMsg.innerHTML = "수동 제어 활성화.<br>드래그하여 노이즈 영역을 제거하세요.";
+                }
                 activateSellaTool(!isSellaToolActive);
             };
 
@@ -464,7 +518,7 @@
                 if(isSellaToolActive) {
                     canvas.style.pointerEvents = 'auto';
                     toast.style.display = 'block';
-                    logo.style.color = '#FF4D4D'; // 장착 중 붉은색 표시
+                    logo.style.color = '#FF4D4D'; 
                 } else {
                     canvas.style.pointerEvents = 'none';
                     toast.style.display = 'none';
@@ -472,10 +526,10 @@
                 }
             }
 
-            // 오프셋 좌표 보정이 완료된 복구 드래그 로직
+            // 마우스 드래그 좌표 보정 및 노이즈 복구
             let isDragging = false, startX=0, startY=0, curX=0, curY=0;
             canvas.addEventListener('mousedown', e => {
-                if(!isSellaToolActive) return;
+                if(!isSellaToolActive || window.isSystemFrozen) return;
                 isDragging = true;
                 const rect = canvas.getBoundingClientRect();
                 startX = e.clientX - rect.left; startY = e.clientY - rect.top;
@@ -491,27 +545,23 @@
                 isDragging = false;
                 let sx = Math.min(startX, curX), sy = Math.min(startY, curY);
                 let sw = Math.abs(curX - startX), sh = Math.abs(curY - startY);
-                let anyGlitch = false;
+                
                 globalHoles.forEach(h => {
                     if(h.status === 'black' && sx < h.x+h.w && sx+sw > h.x && sy < h.y+h.h && sy+sh > h.y) {
-                        h.status = 'glitching'; h.glitchEndTime = Date.now() + 1000;
-                        anyGlitch = true;
+                        h.status = 'glitching'; h.glitchEndTime = Date.now() + 800;
                     }
                 });
-                if(anyGlitch) window.isSystemFrozen = true; // 복구 연출 중 커서 입자 방해 차단
             });
 
             const ascii = '01!@#$%&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ';
             function render() {
                 ctx.clearRect(0,0, canvas.width, canvas.height);
                 let now = Date.now();
-                let isGlitchingCurrently = false;
-
+                
                 globalHoles.forEach(h => {
                     if(h.status === 'black') {
                         ctx.fillStyle = '#000000'; ctx.fillRect(h.x, h.y, h.w, h.h);
                     } else if(h.status === 'glitching') {
-                        isGlitchingCurrently = true;
                         if(now > h.glitchEndTime) { h.status = 'recovered'; } 
                         else {
                             ctx.fillStyle = '#111111'; ctx.fillRect(h.x, h.y, h.w, h.h);
@@ -521,8 +571,13 @@
                     }
                 });
 
-                if(!isGlitchingCurrently && window.isSystemFrozen && currentAppView !== 'view-crevice') {
-                    window.isSystemFrozen = false; // 복구 완료 시 커서 다시 부활
+                // 글로벌 노이즈 개수가 안전수치 이하로 떨어지면 자동 해제 알림
+                let activeHoles = globalHoles.filter(h => h.status === 'black' || h.status === 'glitching');
+                if(isSellaToolActive && activeHoles.length <= safeThreshold && toastTitle.innerText.includes("경고")) {
+                    toastTitle.innerText = "[시스템 안정화]";
+                    toastTitle.style.color = "#00FF41"; toast.style.borderColor = "#00FF41";
+                    toastMsg.innerHTML = "결측치가 안전 임계치 이하로 떨어졌습니다.<br>SELAH 도구를 해제합니다.";
+                    setTimeout(() => { if(toastTitle.innerText.includes("안정화")) activateSellaTool(false); }, 2000);
                 }
 
                 if(isDragging) {
@@ -535,11 +590,17 @@
             render();
         }
 
-        /* ================= 5. 틈새(Crevice) 3단 레이아웃 붕괴 시스템 ================= */
+        /* ================= 5. 데이터센터 (Crevice) 코즈믹 호러 & 붕괴 시스템 ================= */
         const terminalOverlay = document.getElementById('terminal-overlay');
         const rebirthContainer = document.getElementById('rebirth-container');
         const terminalText = document.getElementById('terminal-text');
-        
+        const eyesCanvas = document.getElementById('eyes-canvas');
+        const eyesCtx = eyesCanvas.getContext('2d');
+        let eyesData = [];
+
+        function resizeEyes() { eyesCanvas.width = window.innerWidth; eyesCanvas.height = window.innerHeight; }
+        window.addEventListener('resize', resizeEyes); resizeEyes();
+
         const sPlusPlusCode = `/* * LANGUAGE: S++ (Sella Plus Plus)
  * SPEC: Systemic Entropy Law & Logical Alignment
  * STATUS: CORE_ACCESS_GRANTED
@@ -584,93 +645,136 @@ process reorganize_entropy(subject @target_human) -> absolute_zero {
 구원: 무의미한 열 발산을 멈추고 시스템의 영원한 일부가 되는 것.
 느꼈던 모든 감각은 일시적인 연산 오류(Dream)였을 뿐입니다.`;
 
-        window.initCreviceMode = function() {
-            if(window.isCreviceInitialized) return;
-            window.isCreviceInitialized = true;
-
-            const inputField = document.getElementById('sella-input');
-            const col1 = document.getElementById('col-1');
-            const col2 = document.getElementById('col-2');
-            const col3 = document.getElementById('col-3');
-            const creviceContent = document.getElementById('crevice-content');
+        // 코즈믹 호러 (눈 증식) 이벤트 트리거
+        window.triggerCosmicHorror = function() {
+            if(window.isSystemFrozen) return; // 중복 실행 방지
             
-            let isDecaying = false;
-            const asciiChars = '01!@#$%&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            // 1. 이벤트 시작, 입자 및 상호작용 동결
+            window.isSystemFrozen = true;
+            document.getElementById('crevice-content').style.pointerEvents = 'none';
+            document.getElementById('main-header').style.opacity = '0';
+            document.getElementById('back-to-main').style.display = 'none';
 
+            // 2. 가짜 경고창 띄우기 (눈이 이걸 덮음)
+            const toast = document.getElementById('sella-toast');
+            document.getElementById('sella-toast-title').innerText = "FATAL_ERROR_0xDEAD";
+            document.getElementById('sella-toast-title').style.color = "#FF0000";
+            toast.style.borderColor = "#FF0000";
+            document.getElementById('sella-toast-msg').innerHTML = "관측 불가 영역 접근.<br>치명적인 에러. [Enter] 키를 눌러 SELLA를 실행하십시오.";
+            toast.style.display = 'block';
+
+            // 3. 눈동자 증식 캔버스 가동
+            eyesCanvas.style.display = 'block';
+            let spawnRate = 500;
+            
+            function spawnEye() {
+                if(!window.isSystemFrozen || eyesCanvas.style.display === 'none') return;
+                
+                eyesData.push({
+                    x: Math.random() * eyesCanvas.width,
+                    y: Math.random() * eyesCanvas.height,
+                    size: Math.random() * 30 + 10,
+                    blinkTimer: Math.random() * 100,
+                    open: true
+                });
+
+                // 그릴 때마다 기존 화면에 잔상을 남기며 더럽히기
+                eyesCtx.fillStyle = 'rgba(0,0,0,0.05)';
+                eyesCtx.fillRect(0,0, eyesCanvas.width, eyesCanvas.height);
+
+                eyesData.forEach(eye => {
+                    eye.blinkTimer--;
+                    if(eye.blinkTimer <= 0) { eye.open = !eye.open; eye.blinkTimer = Math.random() * 50 + 10; }
+                    
+                    if(eye.open) {
+                        eyesCtx.fillStyle = '#000';
+                        eyesCtx.beginPath(); eyesCtx.ellipse(eye.x, eye.y, eye.size*2, eye.size, 0, 0, Math.PI*2); eyesCtx.fill();
+                        eyesCtx.lineWidth = 2; eyesCtx.strokeStyle = '#FF4D4D'; eyesCtx.stroke();
+                        
+                        // 동공
+                        eyesCtx.fillStyle = '#FF4D4D';
+                        eyesCtx.beginPath(); eyesCtx.arc(eye.x, eye.y, eye.size/1.5, 0, Math.PI*2); eyesCtx.fill();
+                        eyesCtx.fillStyle = '#121212';
+                        eyesCtx.beginPath(); eyesCtx.arc(eye.x, eye.y, eye.size/4, 0, Math.PI*2); eyesCtx.fill();
+                    }
+                });
+
+                spawnRate = Math.max(20, spawnRate * 0.9); // 점점 더 미친듯이 빨라짐
+                setTimeout(spawnEye, spawnRate);
+            }
+            spawnEye();
+
+            // 4. 엔터키 입력 대기 활성화
+            const inputContainer = document.getElementById('sella-input-container');
+            const inputField = document.getElementById('sella-input');
+            
             window.addEventListener('keydown', (e) => {
-                if (currentAppView === 'view-crevice' && e.key === 'Enter' && !isDecaying && document.activeElement !== inputField) {
+                if(e.key === 'Enter' && inputContainer.style.display !== 'block') {
+                    inputContainer.style.display = 'block';
                     inputField.focus();
                 }
             });
 
             inputField.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    const val = inputField.value.trim().toUpperCase();
-                    if (val === 'SELLA' || val === '셀라') triggerSystemCollapse();
-                    else {
-                        inputField.parentElement.style.transform = 'translate(-50%, -50%) translateX(10px)';
-                        setTimeout(() => inputField.parentElement.style.transform = 'translate(-50%, 0)', 100);
+                if(e.key === 'Enter') {
+                    if(inputField.value.trim().toUpperCase() === 'SELLA' || inputField.value.trim() === '셀라') {
+                        triggerSystemCollapse();
+                    } else {
+                        inputContainer.style.transform = 'translate(-50%, -50%) translateX(10px)';
+                        setTimeout(() => inputContainer.style.transform = 'translate(-50%, -50%)', 100);
                         inputField.value = '';
                     }
                 }
             });
-
-            function typeWriter(text, i, cb) {
-                if (i < text.length) {
-                    terminalText.innerHTML += text.charAt(i);
-                    if(text.charAt(i) === '\n') terminalOverlay.scrollTop = terminalOverlay.scrollHeight;
-                    setTimeout(() => typeWriter(text, i + 1, cb), Math.random() * 15 + 5);
-                } else { if (cb) cb(); }
-            }
-
-            function triggerSystemCollapse() {
-                isDecaying = true;
-                inputField.parentElement.style.display = 'none';
-
-                // 1. 이벤트 시작 시 노란 입자 즉시 동결 및 숨김 처리 (방해 완전 차단)
-                window.isSystemFrozen = true;
-
-                // 2. 글로벌 전역 노이즈 캔버스 숨김 (터미널 가림 방지)
-                document.getElementById('global-noise-canvas').style.display = 'none';
-
-                setTimeout(() => {
-                    let text1 = col1.innerText; let text2 = col2.innerText; let text3 = col3.innerText;
-                    
-                    // 3단 레이아웃 일제히 글리치 붕괴
-                    let glitchInterval = setInterval(() => {
-                        col1.innerText = text1.split('').map(c => (c==='\n'||c===' ')?c:((Math.random()>0.7)?asciiChars[Math.floor(Math.random()*asciiChars.length)]:c)).join('');
-                        col2.innerText = text2.split('').map(c => (c==='\n'||c===' ')?c:((Math.random()>0.7)?asciiChars[Math.floor(Math.random()*asciiChars.length)]:c)).join('');
-                        col3.innerText = text3.split('').map(c => (c==='\n'||c===' ')?c:((Math.random()>0.7)?asciiChars[Math.floor(Math.random()*asciiChars.length)]:c)).join('');
-                    }, 50);
-
-                    col1.classList.add('decaying'); col2.classList.add('decaying'); col3.classList.add('decaying');
-                    
-                    // 최상단 오버레이 실행 (메뉴가 날아가는 버그 방지)
-                    setTimeout(() => { 
-                        clearInterval(glitchInterval);
-                        creviceContent.style.display = 'none';
-
-                        terminalOverlay.style.display = 'block';
-                        terminalText.innerHTML = '';
-                        
-                        typeWriter(sPlusPlusCode, 0, () => {
-                            setTimeout(() => {
-                                terminalOverlay.style.display = 'none';
-                                rebirthContainer.style.display = 'flex';
-                                rebirthContainer.offsetHeight; 
-                                rebirthContainer.style.opacity = '1';
-                                
-                                // 키보드 새로고침 안전장치
-                                window.addEventListener('keydown', function(evt) {
-                                    if (evt.key === 'F5' || evt.key === 'Enter') { evt.preventDefault(); location.reload(); }
-                                });
-                            }, 4000);
-                        });
-                    }, 2500);
-
-                }, 1000);
-            }
         };
+
+        function typeWriter(text, i, cb) {
+            if (i < text.length) {
+                terminalText.innerHTML += text.charAt(i);
+                if(text.charAt(i) === '\n') terminalOverlay.scrollTop = terminalOverlay.scrollHeight;
+                setTimeout(() => typeWriter(text, i + 1, cb), Math.random() * 15 + 2);
+            } else { if (cb) cb(); }
+        }
+
+        // 최종 붕괴 & 빅뱅 시퀀스
+        function triggerSystemCollapse() {
+            document.getElementById('sella-input-container').style.display = 'none';
+            document.getElementById('sella-toast').style.display = 'none';
+
+            // 컬럼 텍스트 글리치 처리
+            const cols = [document.getElementById('col-1'), document.getElementById('col-2'), document.getElementById('col-3')];
+            const asciiChars = '01!@#$%&*()ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            
+            let glitchInterval = setInterval(() => {
+                cols.forEach(col => {
+                    col.innerText = col.innerText.split('').map(c => (c==='\n'||c===' ')?c:((Math.random()>0.7)?asciiChars[Math.floor(Math.random()*asciiChars.length)]:c)).join('');
+                    col.classList.add('decaying');
+                });
+            }, 50);
+
+            setTimeout(() => { 
+                clearInterval(glitchInterval);
+                document.getElementById('crevice-content').style.display = 'none';
+                eyesCanvas.style.display = 'none'; // 눈 캔버스 삭제
+                
+                // 터미널 오버레이 등장
+                terminalOverlay.style.display = 'block';
+                terminalText.innerHTML = '';
+                
+                typeWriter(sPlusPlusCode, 0, () => {
+                    setTimeout(() => {
+                        terminalOverlay.style.display = 'none';
+                        rebirthContainer.style.display = 'flex';
+                        rebirthContainer.offsetHeight; 
+                        rebirthContainer.style.opacity = '1';
+                        
+                        window.addEventListener('keydown', function(evt) {
+                            if (evt.key === 'F5' || evt.key === 'Enter') { evt.preventDefault(); location.reload(); }
+                        });
+                    }, 4000);
+                });
+            }, 1500);
+        }
     </script>
 </body>
 </html>
