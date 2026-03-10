@@ -1,5 +1,4 @@
-/* ================= 전역 & 테마 ================= */
-body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; overflow: hidden; transition: background-color 0.8s ease, color 0.8s ease; cursor: none; }
+ body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; overflow: hidden; transition: background-color 0.8s ease, color 0.8s ease; cursor: none; }
 body.theme-intro { background-color: #3C3C5C; color: #ffffff; }
 body.theme-mustard { background-color: #D5B942; color: #3C3C5C; }
 body.theme-charcoal { background-color: #3C3C5C; color: #ffffff; }
@@ -22,14 +21,18 @@ body.theme-charcoal .gnb a { color: #D5B942; } body.theme-charcoal .gnb a::after
 body.theme-black #main-header { border-bottom: 2px solid #FF4D4D; color: #FF4D4D; }
 body.theme-black .gnb a { color: #FF4D4D; } body.theme-black .gnb a::after { background-color: #FF4D4D; }
 
-.page-view { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100vh; padding-top: 80px; box-sizing: border-box; overflow-y: auto; overflow-x: hidden; opacity: 0; transition: opacity 0.5s ease; z-index: 10; }
+.page-view { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; padding-top: 100px; padding-bottom: 100px; box-sizing: border-box; overflow-y: auto; overflow-x: hidden; opacity: 0; transition: opacity 0.5s ease; z-index: 10; -webkit-overflow-scrolling: touch; }
 .page-view.active { display: block; opacity: 1; }
 .page-view::-webkit-scrollbar { width: 8px; }
 .page-view::-webkit-scrollbar-track { background: transparent; }
 .page-view::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.2); border-radius: 4px; }
 body.theme-charcoal .page-view::-webkit-scrollbar-thumb { background: rgba(213, 185, 66, 0.5); }
 
-/* ================= <1> 인트로 ================= */
+#back-to-main { display: none; position: fixed; bottom: 30px; right: 4vw; font-size: 1.2rem; font-weight: bold; cursor: pointer; z-index: 9999; letter-spacing: 2px; }
+body.theme-charcoal #back-to-main { color: #D5B942; }
+body.theme-mustard #back-to-main { color: #3C3C5C; }
+body.theme-black #back-to-main { color: #FF4D4D; }
+
 #view-intro { display: block; position: absolute; top: 0; left: 0; width: 100%; height: 100vh; overflow: hidden; z-index: 1000; padding: 0; transition: opacity 0.8s ease; }
 #world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform-origin: 0 0; will-change: transform; }
 #universe-circle { position: absolute; top: 0; left: 0; width: 5000px; height: 5000px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.05); transition: background-color 0.1s; }
@@ -41,42 +44,41 @@ body.theme-charcoal .page-view::-webkit-scrollbar-thumb { background: rgba(213, 
 .node-label { position: absolute; top: 25px; left: 50%; transform: translateX(-50%); color: #ccc; white-space: nowrap; }
 #selah-text { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; letter-spacing: 0.5rem; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 999; }
 
-/* ================= <3> 메인 & <4> 세계관 ================= */
-#view-main .main-content { display: flex; height: 100%; padding: 4vw; gap: 4vw; box-sizing: border-box; align-items: center; }
-.main-visual { flex: 1.5; height: 80%; border: 2px solid #3C3C5C; border-radius: 20px; display: flex; justify-content: center; align-items: center; text-align: center; }
-.main-text { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+#view-main .main-content { display: flex; flex-wrap: wrap; height: 100%; padding: 4vw; gap: 4vw; box-sizing: border-box; align-items: center; }
+.main-visual { flex: 1.5; min-height: 60vh; border: 2px solid #3C3C5C; border-radius: 20px; display: flex; justify-content: center; align-items: center; text-align: center; }
+.main-text { flex: 1; display: flex; flex-direction: column; justify-content: center; color: #3C3C5C; }
+.highlight-text { font-size: 2.5rem; font-weight: 300; line-height: 1.5; color: #3C3C5C; }
 
 .semi-circle-bg { position: absolute; top: -50vh; left: -25vw; width: 150vw; height: 120vh; background-color: #D5B942; border-radius: 50%; z-index: -1; }
 .hero-section { position: relative; width: 100%; height: 60vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .hero-title { color: #3C3C5C; font-size: 4rem; z-index: 1; }
-.story-container { max-width: 1000px; margin: 0 auto; padding: 100px 5vw; display: flex; flex-direction: column; gap: 15vh; }
-.story-block { display: flex; align-items: center; gap: 50px; opacity: 0; transform: translateY(50px); transition: all 1s ease-out; }
+.story-container { position: relative; max-width: 1000px; margin: 0 auto; padding: 50px 5vw 150px 5vw; display: flex; flex-direction: column; gap: 15vh; }
+.story-block { display: flex; align-items: center; gap: 50px; opacity: 0; transform: translateY(50px); transition: all 1s ease-out; flex-wrap: wrap; }
 .story-block.visible { opacity: 1; transform: translateY(0); }
 .story-block:nth-child(even) { flex-direction: row-reverse; }
-.story-visual { flex: 1; height: 350px; border: 1px solid #D5B942; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #D5B942; font-size: 1.2rem; }
-.story-text { flex: 1; } .story-text h3 { color: #D5B942; font-size: 2rem; margin-bottom: 20px; } .story-text p { font-size: 1.1rem; line-height: 1.8; color: #ddd; font-weight: 300; }
+.story-visual { flex: 1; min-width: 300px; height: 350px; border: 1px solid #D5B942; border-radius: 20px; display: flex; align-items: center; justify-content: center; color: #D5B942; font-size: 1.2rem; }
+.story-text { flex: 1; min-width: 300px; } 
+.story-text h3 { color: #D5B942; font-size: 2rem; margin-bottom: 20px; } 
+.story-text p { font-size: 1.1rem; line-height: 1.8; color: #ffffff; font-weight: 300; }
 
-/* ================= <5> 시스템 동화 터미널 ================= */
-#view-artwork { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
-.artwork-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4vw; width: 80%; max-width: 1000px; z-index: 1; transition: opacity 0.5s; }
+#view-artwork { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; padding:0; }
+.artwork-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4vw; width: 80%; max-width: 1000px; z-index: 1; transition: opacity 0.5s; margin-top: 100px; }
 .art-item { aspect-ratio: 4/3; background: #2a2a40; border: 1px solid #D5B942; border-radius: 15px; }
 #recovery-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; cursor: crosshair; }
-#recovery-ui { position: absolute; top: 120px; left: 50%; transform: translateX(-50%); color: #fff; text-align: center; line-height: 1.8; font-size: 1.1rem; z-index: 6; pointer-events: none; transition: opacity 0.5s; }
+#recovery-ui { position: absolute; top: 120px; left: 50%; transform: translateX(-50%); color: #fff; text-align: center; line-height: 1.8; font-size: 1.1rem; z-index: 6; pointer-events: none; transition: opacity 0.5s; width: 90%; }
 
-#terminal-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: #050505; color: #00FF41; font-family: 'Courier New', Courier, monospace; padding: 5vw; box-sizing: border-box; z-index: 100; overflow-y: auto; font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap; }
+#terminal-overlay { display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100vh; background-color: #050505; color: #00FF41; font-family: 'Courier New', Courier, monospace; padding: 5vw; box-sizing: border-box; z-index: 100; overflow-y: auto; font-size: 1.1rem; line-height: 1.6; white-space: pre-wrap; }
 .cursor { animation: blink 1s step-end infinite; font-weight: bold; }
 @keyframes blink { 50% { opacity: 0; } }
 
-/* ================= <6> Photograph ================= */
 #view-photograph { overflow: hidden; padding: 0; }
 #gallery-container { position: relative; width: 100%; height: 100%; }
 .photo-card { position: absolute; width: 320px; height: 450px; background: #2a2a40; border: 2px solid #D5B942; border-radius: 15px; top: 50%; left: 50%; transform-origin: center center; display: flex; align-items: center; justify-content: center; color: #fff; will-change: transform, opacity; }
 .p-text { padding: 30px; text-align: center; font-size: 1.1rem; line-height: 1.8; font-weight: 300; }
 
-/* ================= <7> Crevice (시스템 붕괴 연출) ================= */
 #crevice-section { position: relative; width: 100%; height: 100vh; overflow: hidden; background-color: #000; }
 .ruined-world { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: url('https://images.unsplash.com/photo-1518134250266-4f964082878d?q=80&w=1920&auto=format&fit=crop') center/cover; filter: grayscale(80%) contrast(120%) brightness(0.6); z-index: 1; transition: opacity 0.5s; }
-.crevice-poem { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ffffff; font-size: 1.2rem; line-height: 2; text-align: center; letter-spacing: 2px; font-weight: 300; z-index: 2; transition: opacity 0.5s; white-space: pre-line; }
+.crevice-poem { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #ffffff; font-size: 1.2rem; line-height: 2; text-align: center; letter-spacing: 2px; font-weight: 300; z-index: 2; transition: opacity 0.5s; white-space: pre-line; width: 90%; }
 
 #obscure-rects { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; pointer-events: none; }
 .obs-rect { position: absolute; background-color: #000; transition: opacity 0.8s ease-out; pointer-events: auto; }
