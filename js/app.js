@@ -100,14 +100,40 @@ function updateGalleryView(angleValue) {
 }
 
 // 인트로에서 메인 허브 진입
-circle.addEventListener('click', () => {
-    if (isZoomedOutReady && currentAppView === 'intro') {
-        document.getElementById('view-intro').style.opacity = '0'; 
-        setTimeout(() => {
-            document.getElementById('view-intro').style.display = 'none';
-            document.getElementById('main-header').classList.add('active'); 
-            navigateTo('view-main', 'theme-mustard'); 
-        }, 800);
+// 1. 클릭 범위와 판정 완화 (타임라인 선을 눌러도 입장되도록 world 전체로 클릭 범위 확장)
+world.addEventListener('click', () => {
+    if (currentAppView === 'intro') {
+        // 줌아웃이 80% 이상 진행되었다면 언제든 입장 허용
+        let zoomProgress = Math.min(Math.max((currentIntroScroll - 4000) / 3000, 0), 1);
+        if (zoomProgress > 0.8) {
+            document.getElementById('view-intro').style.opacity = '0'; 
+            setTimeout(() => {
+                document.getElementById('view-intro').style.display = 'none';
+                document.getElementById('main-header').classList.add('active'); 
+                navigateTo('view-main', 'theme-mustard'); 
+            }, 800);
+        }
+    }
+});
+
+// 2. 모바일 및 패드 환경 터치 스와이프 지원
+let touchStartY = 0;
+window.addEventListener('touchstart', e => {
+    touchStartY = e.touches[0].clientY;
+});
+window.addEventListener('touchmove', e => {
+    let touchY = e.touches[0].clientY;
+    let deltaY = touchStartY - touchY;
+    touchStartY = touchY;
+    
+    if (currentAppView === 'intro') {
+        targetIntroScroll += deltaY * 2.5;
+        if (targetIntroScroll < 0) targetIntroScroll = 0;
+    } else if (currentAppView === 'view-photograph') {
+        targetGalleryAngle += deltaY * 0.1;
+        let maxAngle = (photoCards.length - 1) * gSpacing;
+        if (targetGalleryAngle < 0) targetGalleryAngle = 0;
+        if (targetGalleryAngle > maxAngle) targetGalleryAngle = maxAngle;
     }
 });
 
